@@ -4,6 +4,7 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { MdLeaderboard } from 'react-icons/md';
 import { getLeads, getEmployees } from '../services/leadsService';
 import { useAuth } from '../context/AuthContext';
+import { supabase } from '../utils/supabase/supabase';
 import type { Lead, Profile } from '../services/leadsService';
 
 const STATUSES = ['جديد', 'متابعة', 'مبيعة'];
@@ -49,6 +50,25 @@ export const HomePage = () => {
       setLoadingStats(false);
     };
     fetchData();
+
+    if (!user?.isAdmin) return;
+
+    const channel = supabase
+      .channel('home-leads-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          setLeads((prev) => [payload.new as Lead, ...prev]);
+        } else if (payload.eventType === 'UPDATE') {
+          setLeads((prev) =>
+            prev.map((l) => (l.id === (payload.new as Lead).id ? (payload.new as Lead) : l))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          setLeads((prev) => prev.filter((l) => l.id !== (payload.old as Lead).id));
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, [user]);
 
   // إحصائيات الأدمن
