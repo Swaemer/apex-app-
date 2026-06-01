@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
 import { getLeads, upsertLeads, updateLeadStatus, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
+import { supabase } from '../utils/supabase/supabase';
 
 interface ColumnConfig {
   columnIndex: number;
@@ -132,7 +133,26 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
 
   useEffect(() => {
     loadLeads();
-  }, []);
+
+    const channel = supabase
+      .channel('leads-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newLead = payload.new as Lead;
+          const show = !employeeName || newLead.assigned_to === employeeName;
+          if (show) setLeads((prev) => [newLead, ...prev]);
+        } else if (payload.eventType === 'UPDATE') {
+          setLeads((prev) =>
+            prev.map((l) => (l.id === (payload.new as Lead).id ? (payload.new as Lead) : l))
+          );
+        } else if (payload.eventType === 'DELETE') {
+          setLeads((prev) => prev.filter((l) => l.id !== (payload.old as Lead).id));
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [employeeName]);
 
   const filteredLeads = leads.filter((lead) => {
     if (filter !== 'الكل' && lead.status !== filter) return false;
