@@ -15,7 +15,7 @@ export interface LabCase {
   created_at: string;
 }
 
-export type NewLabCase = Pick<LabCase, 'patient_name' | 'teeth_count' | 'lab_name' | 'file_number' | 'doctor_name' | 'case_type'>;
+export type NewLabCase = Pick<LabCase, 'patient_name' | 'teeth_count' | 'lab_name' | 'file_number' | 'doctor_name' | 'case_type'> & { sent_date?: string };
 
 export const getLabCases = async (): Promise<LabCase[]> => {
   const { data, error } = await supabase

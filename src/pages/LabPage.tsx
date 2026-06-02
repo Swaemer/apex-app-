@@ -34,7 +34,7 @@ export const LabPage = () => {
   const [filter, setFilter] = useState('الكل');
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' });
+  const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
 
   const load = async () => {
     setLoading(true);
@@ -74,9 +74,10 @@ export const LabPage = () => {
         case_type: newCase.case_type.trim() || null,
         teeth_count: newCase.teeth_count ? parseInt(newCase.teeth_count) : null,
         lab_name: newCase.lab_name,
+        ...(isAdmin && newCase.sent_date ? { sent_date: newCase.sent_date } : {}),
       });
       toast.success('تم إضافة الحالة');
-      setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' });
+      setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
       setShowForm(false);
     } catch { toast.error('خطأ في الإضافة'); }
   };
@@ -177,6 +178,20 @@ export const LabPage = () => {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
                 />
               </div>
+              {isAdmin && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    تاريخ الإضافة
+                    <span className="text-xs text-gray-400 mr-1">(اتركه فارغاً للتاريخ الحالي)</span>
+                  </label>
+                  <input
+                    type="date"
+                    value={newCase.sent_date}
+                    onChange={(e) => setNewCase((p) => ({ ...p, sent_date: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">عدد الأسنان</label>
                 <input
@@ -203,7 +218,7 @@ export const LabPage = () => {
               <button onClick={handleAdd} className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all">
                 إضافة
               </button>
-              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
+              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
                 إلغاء
               </button>
             </div>
