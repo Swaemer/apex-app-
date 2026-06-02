@@ -7,7 +7,6 @@ import type { LeaveRequest } from '../services/leaveService';
 import { getDoctors } from '../services/doctorService';
 import type { Doctor } from '../services/doctorService';
 import { useAuth } from '../context/AuthContext';
-import { getMyLabPermission } from '../services/leadsService';
 
 const STATUSES = ['جديد', 'موافق عليه', 'مرفوض'];
 
