@@ -103,9 +103,9 @@ export const HomePage = () => {
 
   const toggleLeavePermission = async (emp: Profile) => {
     try {
-      const newVal = !(emp as any).can_submit_leave;
+      const newVal = !emp.can_submit_leave;
       await supabase.from('profiles').update({ can_submit_leave: newVal }).eq('id', emp.id);
-      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } as any : e));
+      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } : e));
     } catch { /* ignore */ }
   };
 
@@ -347,12 +347,12 @@ export const HomePage = () => {
                         {employees.map((emp) => (
                           <div key={emp.id} className="flex items-center justify-between py-3">
                             <button onClick={() => toggleLeavePermission(emp)}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(emp as any).can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${(emp as any).can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
                             </button>
                             <div className="text-right">
                               <p className="font-medium text-gray-900">{emp.name}</p>
-                              <p className="text-xs text-gray-400">{(emp as any).can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
+                              <p className="text-xs text-gray-400">{emp.can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
                             </div>
                           </div>
                         ))}
