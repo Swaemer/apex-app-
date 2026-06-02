@@ -6,6 +6,7 @@ import {
   getLabCases, addLabCase, updateLabCase, deleteLabCase,
 } from '../services/labService';
 import type { LabCase } from '../services/labService';
+import { getMyLabPermission } from '../services/leadsService';
 import { useAuth } from '../context/AuthContext';
 
 const STATUSES = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
@@ -19,6 +20,7 @@ const statusColors: Record<string, string> = {
 export const LabPage = () => {
   const { user } = useAuth();
   const isAdmin = user?.isAdmin ?? false;
+  const [canEdit, setCanEdit] = useState(false);
 
   const [cases, setCases] = useState<LabCase[]>([]);
   const [filter, setFilter] = useState('الكل');
@@ -34,6 +36,9 @@ export const LabPage = () => {
   };
 
   useEffect(() => {
+    if (user && !isAdmin) {
+      getMyLabPermission(user.id).then(setCanEdit);
+    }
     load();
 
     const channel = supabase
@@ -96,13 +101,15 @@ export const LabPage = () => {
             <p className="text-gray-500">إجمالي الحالات: {filtered.length}</p>
           </div>
           <div className="flex gap-3">
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
-            >
-              <MdAdd className="w-5 h-5" />
-              حالة جديدة
-            </button>
+            {(isAdmin || canEdit) && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              >
+                <MdAdd className="w-5 h-5" />
+                حالة جديدة
+              </button>
+            )}
             <button
               onClick={load}
               disabled={loading}
@@ -215,29 +222,43 @@ export const LabPage = () => {
                     <td className="px-5 py-4 text-sm text-gray-700">{c.teeth_count ?? '—'}</td>
                     <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</td>
                     <td className="px-5 py-4 text-sm">
-                      <select
-                        value={c.status}
-                        onChange={(e) => handleUpdate(c.id, 'status', e.target.value)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}
-                      >
-                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                      </select>
+                      {isAdmin || canEdit ? (
+                        <select
+                          value={c.status}
+                          onChange={(e) => handleUpdate(c.id, 'status', e.target.value)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}
+                        >
+                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                        </select>
+                      ) : (
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                          {c.status}
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm">
-                      <input
-                        type="date"
-                        value={c.received_date ?? ''}
-                        onChange={(e) => handleUpdate(c.id, 'received_date', e.target.value)}
-                        className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
-                      />
+                      {isAdmin || canEdit ? (
+                        <input
+                          type="date"
+                          value={c.received_date ?? ''}
+                          onChange={(e) => handleUpdate(c.id, 'received_date', e.target.value)}
+                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
+                        />
+                      ) : (
+                        <span className="text-gray-500 text-xs">{c.received_date ? new Date(c.received_date).toLocaleDateString('ar-SA') : '—'}</span>
+                      )}
                     </td>
                     <td className="px-5 py-4 text-sm">
-                      <input
-                        type="date"
-                        value={c.return_date ?? ''}
-                        onChange={(e) => handleUpdate(c.id, 'return_date', e.target.value)}
-                        className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
-                      />
+                      {isAdmin || canEdit ? (
+                        <input
+                          type="date"
+                          value={c.return_date ?? ''}
+                          onChange={(e) => handleUpdate(c.id, 'return_date', e.target.value)}
+                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
+                        />
+                      ) : (
+                        <span className="text-gray-500 text-xs">{c.return_date ? new Date(c.return_date).toLocaleDateString('ar-SA') : '—'}</span>
+                      )}
                     </td>
                     {isAdmin && (
                       <td className="px-5 py-4 text-center">

@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { MdLeaderboard, MdScience } from 'react-icons/md';
-import { getLeads, getEmployees } from '../services/leadsService';
+import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
+import { getLabCases } from '../services/labService';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../utils/supabase/supabase';
 import type { Lead, Profile } from '../services/leadsService';
+import type { LabCase } from '../services/labService';
 
 const STATUSES = ['جديد', 'متابعة', 'مبيعة'];
 
@@ -32,6 +34,7 @@ export const HomePage = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [myLeads, setMyLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Profile[]>([]);
+  const [labCases, setLabCases] = useState<LabCase[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -41,8 +44,9 @@ export const HomePage = () => {
         const allLeads = await getLeads();
         if (user.isAdmin) {
           setLeads(allLeads);
-          const emps = await getEmployees();
+          const [emps, cases] = await Promise.all([getEmployees(), getLabCases()]);
           setEmployees(emps);
+          setLabCases(cases);
         } else {
           setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
         }
@@ -70,6 +74,16 @@ export const HomePage = () => {
 
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  const toggleLabPermission = async (emp: Profile) => {
+    try {
+      await updateLabPermission(emp.id, !emp.can_edit_lab);
+      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_edit_lab: !emp.can_edit_lab } : e));
+    } catch { /* ignore */ }
+  };
+
+  // إحصائيات المعمل
+  const labStatuses = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
 
   // إحصائيات الأدمن
   const totalLeads = leads.length;
@@ -228,6 +242,61 @@ export const HomePage = () => {
             </div>
           </div>
         )}
+
+            {/* إحصائيات المعمل */}
+            {labCases.length >= 0 && (
+              <div className="mb-8">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات المعمل</h2>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
+                    <p className="text-xs text-gray-500 mb-1">إجمالي الحالات</p>
+                    <p className="text-3xl font-bold text-gray-900">{labCases.length}</p>
+                  </div>
+                  {labStatuses.map((s) => {
+                    const colors: Record<string, string> = {
+                      'في المعمل': 'text-yellow-700',
+                      'تم الاستلام': 'text-green-700',
+                      'أعيد للمعمل': 'text-red-700',
+                    };
+                    return (
+                      <div key={s} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
+                        <p className="text-xs text-gray-500 mb-1">{s}</p>
+                        <p className={`text-3xl font-bold ${colors[s]}`}>
+                          {labCases.filter((c) => c.status === s).length}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* صلاحيات تعديل المعمل */}
+                {employees.length > 0 && (
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
+                    <div className="divide-y divide-gray-100">
+                      {employees.map((emp) => (
+                        <div key={emp.id} className="flex items-center justify-between py-3">
+                          <button
+                            onClick={() => toggleLabPermission(emp)}
+                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                              emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'
+                            }`}
+                          >
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                              emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'
+                            }`} />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">{emp.name}</p>
+                            <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
         {/* القائمة */}
         <div>

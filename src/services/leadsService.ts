@@ -42,14 +42,30 @@ export interface Profile {
   id: string;
   name: string;
   role: string;
+  can_edit_lab: boolean;
 }
 
 export const getEmployees = async (): Promise<Profile[]> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, role')
+    .select('id, name, role, can_edit_lab')
     .eq('role', 'employee')
     .order('name');
   if (error) throw error;
   return data as Profile[];
+};
+
+export const updateLabPermission = async (id: string, can_edit_lab: boolean): Promise<void> => {
+  const { error } = await supabase.from('profiles').update({ can_edit_lab }).eq('id', id);
+  if (error) throw error;
+};
+
+export const getMyLabPermission = async (userId: string): Promise<boolean> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('can_edit_lab')
+    .eq('id', userId)
+    .single();
+  if (error) return false;
+  return data?.can_edit_lab ?? false;
 };

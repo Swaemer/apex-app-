@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { supabase } from '../utils/supabase/supabase';
 
 interface AuthUser {
+  id: string;
   name: string;
   email: string;
   isAdmin: boolean;
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       const u = session?.user ?? null;
       setUser(u ? {
+        id: u.id,
         name: u.user_metadata?.name || u.email || '',
         email: u.email || '',
         isAdmin: u.user_metadata?.role === 'admin',
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const u = session?.user ?? null;
       setUser(u ? {
+        id: u.id,
         name: u.user_metadata?.name || u.email || '',
         email: u.email || '',
         isAdmin: u.user_metadata?.role === 'admin',
