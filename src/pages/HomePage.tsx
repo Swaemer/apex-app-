@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose } from 'react-icons/md';
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
-import { useAuth } from '../context/AuthContext';
+import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
 import { supabase } from '../utils/supabase/supabase';
+import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
+import type { Doctor } from '../services/doctorService';
 
 const STATUSES = ['جديد', 'متابعة', 'مبيعة'];
 
@@ -35,6 +37,10 @@ export const HomePage = () => {
   const [myLeads, setMyLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Profile[]>([]);
   const [labCases, setLabCases] = useState<LabCase[]>([]);
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [newDoctorName, setNewDoctorName] = useState('');
+  const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
+  const [editingDoctorName, setEditingDoctorName] = useState('');
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -44,9 +50,10 @@ export const HomePage = () => {
         const allLeads = await getLeads();
         if (user.isAdmin) {
           setLeads(allLeads);
-          const [emps, cases] = await Promise.all([getEmployees(), getLabCases()]);
+          const [emps, cases, docs] = await Promise.all([getEmployees(), getLabCases(), getDoctors()]);
           setEmployees(emps);
           setLabCases(cases);
+          setDoctors(docs);
         } else {
           setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
         }
@@ -74,6 +81,33 @@ export const HomePage = () => {
 
     return () => { supabase.removeChannel(channel); };
   }, [user]);
+
+  const handleAddDoctor = async () => {
+    if (!newDoctorName.trim()) return;
+    await addDoctor(newDoctorName.trim());
+    setDoctors(await getDoctors());
+    setNewDoctorName('');
+  };
+
+  const handleDeleteDoctor = async (id: number) => {
+    await deleteDoctor(id);
+    setDoctors((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateDoctor = async (id: number) => {
+    if (!editingDoctorName.trim()) return;
+    await updateDoctor(id, editingDoctorName.trim());
+    setDoctors((prev) => prev.map((d) => d.id === id ? { ...d, name: editingDoctorName.trim() } : d));
+    setEditingDoctorId(null);
+  };
+
+  const toggleLeavePermission = async (emp: Profile) => {
+    try {
+      const newVal = !(emp as any).can_submit_leave;
+      await supabase.from('profiles').update({ can_submit_leave: newVal }).eq('id', emp.id);
+      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } as any : e));
+    } catch { /* ignore */ }
+  };
 
   const toggleLabPermission = async (emp: Profile) => {
     try {
@@ -188,6 +222,24 @@ export const HomePage = () => {
           </>
         )}
 
+        {/* كرت طلب الإجازة */}
+        {!isAdmin && !loadingStats && (
+          <div className="mb-6">
+            <button onClick={() => navigate('/leave')}
+              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white text-right hover:shadow-lg transition-all group">
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-lg text-sm font-medium group-hover:bg-white/30 transition-all">
+                  افتح الآن <MdAssignment className="w-4 h-4" />
+                </div>
+                <div>
+                  <p className="text-white/70 text-sm mb-1">استقبال المرضى</p>
+                  <p className="text-2xl font-bold">طلبات الإجازة المرضية</p>
+                </div>
+              </div>
+            </button>
+          </div>
+        )}
+
         {/* ======== داشبورد الموظف ======== */}
         {!isAdmin && !loadingStats && (
           <div className="mb-8">
@@ -269,32 +321,97 @@ export const HomePage = () => {
                   })}
                 </div>
 
-                {/* صلاحيات تعديل المعمل */}
+                {/* صلاحيات تعديل المعمل + طلبات الإجازة */}
                 {employees.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
-                    <div className="divide-y divide-gray-100">
-                      {employees.map((emp) => (
-                        <div key={emp.id} className="flex items-center justify-between py-3">
-                          <button
-                            onClick={() => toggleLabPermission(emp)}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                              emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'
-                            }`}
-                          >
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
-                              emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'
-                            }`} />
-                          </button>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                      <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
+                      <div className="divide-y divide-gray-100">
+                        {employees.map((emp) => (
+                          <div key={emp.id} className="flex items-center justify-between py-3">
+                            <button onClick={() => toggleLabPermission(emp)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'}`}>
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'}`} />
+                            </button>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-900">{emp.name}</p>
+                              <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                      <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات طلبات الإجازة</h3>
+                      <div className="divide-y divide-gray-100">
+                        {employees.map((emp) => (
+                          <div key={emp.id} className="flex items-center justify-between py-3">
+                            <button onClick={() => toggleLeavePermission(emp)}
+                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${(emp as any).can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
+                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${(emp as any).can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
+                            </button>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-900">{emp.name}</p>
+                              <p className="text-xs text-gray-400">{(emp as any).can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
+
+                {/* إدارة الأطباء */}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                  <h3 className="text-base font-bold text-gray-900 mb-4">إدارة فريق الأطباء</h3>
+                  <div className="flex gap-2 mb-4">
+                    <button onClick={handleAddDoctor}
+                      className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium hover:shadow-md transition-all flex items-center gap-1">
+                      <MdAdd className="w-4 h-4" /> إضافة
+                    </button>
+                    <input type="text" value={newDoctorName} onChange={(e) => setNewDoctorName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddDoctor()}
+                      placeholder="اسم الطبيب الجديد"
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300" />
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {doctors.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between py-2.5 gap-2">
+                        <div className="flex gap-1">
+                          {editingDoctorId === doc.id ? (
+                            <>
+                              <button onClick={() => handleUpdateDoctor(doc.id)}
+                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
+                                <MdCheck className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => setEditingDoctorId(null)}
+                                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
+                                <MdClose className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button onClick={() => { setEditingDoctorId(doc.id); setEditingDoctorName(doc.name); }}
+                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
+                                <MdEdit className="w-4 h-4" />
+                              </button>
+                              <button onClick={() => handleDeleteDoctor(doc.id)}
+                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                                <MdDelete className="w-4 h-4" />
+                              </button>
+                            </>
+                          )}
+                        </div>
+                        {editingDoctorId === doc.id ? (
+                          <input type="text" value={editingDoctorName} onChange={(e) => setEditingDoctorName(e.target.value)}
+                            className="flex-1 text-left px-2 py-1 border border-blue-300 rounded-lg text-sm focus:outline-none bg-white" />
+                        ) : (
+                          <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 

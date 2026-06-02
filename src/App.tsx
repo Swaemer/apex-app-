@@ -7,6 +7,7 @@ import { AuthPage } from './pages/AuthPage';
 import { HomePage } from './pages/HomePage';
 import { LeadsPage } from './pages/LeadsPage';
 import { LabPage } from './pages/LabPage';
+import { LeavePage } from './pages/LeavePage';
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
             <Route path="/lab" element={<ProtectedRoute><LabPage /></ProtectedRoute>} />
+            <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
           </Routes>
         </main>

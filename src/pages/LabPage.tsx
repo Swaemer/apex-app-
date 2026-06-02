@@ -7,17 +7,12 @@ import {
 } from '../services/labService';
 import type { LabCase } from '../services/labService';
 import { getMyLabPermission } from '../services/leadsService';
+import { getDoctors } from '../services/doctorService';
+import type { Doctor } from '../services/doctorService';
 import { useAuth } from '../context/AuthContext';
 
 const STATUSES = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
 
-const DOCTORS = [
-  'د.محمد كامل',
-  'د.وليد عثمان',
-  'د.سارة شوكت',
-  'د.نسمة عبدالله',
-  'د.وائل مصطفى',
-];
 
 const statusColors: Record<string, string> = {
   'في المعمل':    'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -30,6 +25,7 @@ export const LabPage = () => {
   const isAdmin = user?.isAdmin ?? false;
   const [canEdit, setCanEdit] = useState(false);
 
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [cases, setCases] = useState<LabCase[]>([]);
   const [filter, setFilter] = useState('الكل');
   const [loading, setLoading] = useState(false);
@@ -50,6 +46,7 @@ export const LabPage = () => {
     if (user && !isAdmin) {
       getMyLabPermission(user.id).then(setCanEdit);
     }
+    getDoctors().then(setDoctors).catch(() => {});
     load();
 
     const channel = supabase
@@ -188,7 +185,7 @@ export const LabPage = () => {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
                 >
                   <option value="">-- اختر الدكتور --</option>
-                  {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                  {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
                 </select>
               </div>
               <div className="md:col-span-2">
@@ -305,7 +302,7 @@ export const LabPage = () => {
                         <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
                           className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white">
                           <option value="">—</option>
-                          {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                          {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
                         </select>
                       ) : <span className="text-sm text-gray-700">{c.doctor_name ?? '—'}</span>}
                     </td>
