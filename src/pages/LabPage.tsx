@@ -24,7 +24,7 @@ export const LabPage = () => {
   const [filter, setFilter] = useState('الكل');
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [newCase, setNewCase] = useState({ patient_name: '', teeth_count: '' });
+  const [newCase, setNewCase] = useState({ patient_name: '', teeth_count: '', lab_name: 'معمل سكاكا' });
 
   const load = async () => {
     setLoading(true);
@@ -57,9 +57,10 @@ export const LabPage = () => {
       await addLabCase({
         patient_name: newCase.patient_name.trim(),
         teeth_count: newCase.teeth_count ? parseInt(newCase.teeth_count) : null,
+        lab_name: newCase.lab_name,
       });
       toast.success('تم إضافة الحالة');
-      setNewCase({ patient_name: '', teeth_count: '' });
+      setNewCase({ patient_name: '', teeth_count: '', lab_name: 'معمل سكاكا' });
       setShowForm(false);
     } catch { toast.error('خطأ في الإضافة'); }
   };
@@ -137,12 +138,23 @@ export const LabPage = () => {
                   className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
                 />
               </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">اسم المعمل</label>
+                <select
+                  value={newCase.lab_name}
+                  onChange={(e) => setNewCase((p) => ({ ...p, lab_name: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+                >
+                  <option value="معمل سكاكا">معمل سكاكا</option>
+                  <option value="معمل بريدة">معمل بريدة</option>
+                </select>
+              </div>
             </div>
             <div className="flex gap-3">
               <button onClick={handleAdd} className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all">
                 إضافة
               </button>
-              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', teeth_count: '' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
+              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', teeth_count: '', lab_name: 'معمل سكاكا' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
                 إلغاء
               </button>
             </div>
@@ -173,6 +185,7 @@ export const LabPage = () => {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">اسم المريض</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">المعمل</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">عدد الأسنان</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الخروج</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
@@ -185,6 +198,7 @@ export const LabPage = () => {
                 {filtered.length > 0 ? filtered.map((c) => (
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm font-medium text-gray-900">{c.patient_name}</td>
+                    <td className="px-5 py-4 text-sm font-medium text-blue-700">{c.lab_name}</td>
                     <td className="px-5 py-4 text-sm text-gray-700">{c.teeth_count ?? '—'}</td>
                     <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</td>
                     <td className="px-5 py-4 text-sm">
@@ -222,7 +236,7 @@ export const LabPage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 7 : 6} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={isAdmin ? 8 : 7} className="px-6 py-12 text-center text-gray-400">
                       {loading ? 'جاري التحميل...' : 'لا توجد حالات — اضغط "حالة جديدة" للإضافة'}
                     </td>
                   </tr>

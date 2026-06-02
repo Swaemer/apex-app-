@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabase/supabase';
 export interface LabCase {
   id: number;
   patient_name: string;
+  lab_name: string;
   sent_date: string;
   teeth_count: number | null;
   status: string;
@@ -11,7 +12,7 @@ export interface LabCase {
   created_at: string;
 }
 
-export type NewLabCase = Pick<LabCase, 'patient_name' | 'teeth_count'>;
+export type NewLabCase = Pick<LabCase, 'patient_name' | 'teeth_count' | 'lab_name'>;
 
 export const getLabCases = async (): Promise<LabCase[]> => {
   const { data, error } = await supabase
