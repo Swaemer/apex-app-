@@ -279,14 +279,55 @@ export const LabPage = () => {
               </thead>
               <tbody>
                 {filtered.length > 0 ? filtered.map((c) => (
-                  <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-5 py-4 text-sm font-medium text-gray-900">{c.patient_name}</td>
-                    <td className="px-5 py-4 text-sm text-gray-700">{c.file_number ?? '—'}</td>
-                    <td className="px-5 py-4 text-sm text-gray-700">{c.doctor_name ?? '—'}</td>
-                    <td className="px-5 py-4 text-sm text-gray-700">{c.case_type ?? '—'}</td>
-                    <td className="px-5 py-4 text-sm font-medium text-blue-700">{c.lab_name}</td>
-                    <td className="px-5 py-4 text-sm text-gray-700">{c.teeth_count ?? '—'}</td>
-                    <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</td>
+                  <tr key={c.id} className={`border-b border-gray-100 transition-colors ${pending[c.id] ? 'bg-yellow-50' : 'hover:bg-gray-50'}`}>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-gray-400 bg-white min-w-[100px]" />
+                      ) : <span className="text-sm font-medium text-gray-900">{c.patient_name}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white min-w-[70px]" />
+                      ) : <span className="text-sm text-gray-700">{c.file_number ?? '—'}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
+                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white">
+                          <option value="">—</option>
+                          {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      ) : <span className="text-sm text-gray-700">{c.doctor_name ?? '—'}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
+                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white min-w-[80px]" />
+                      ) : <span className="text-sm text-gray-700">{c.case_type ?? '—'}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
+                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium text-blue-700 focus:outline-none focus:border-gray-400 bg-white">
+                          <option value="معمل سكاكا">معمل سكاكا</option>
+                          <option value="معمل بريدة">معمل بريدة</option>
+                        </select>
+                      ) : <span className="text-sm font-medium text-blue-700">{c.lab_name}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
+                          className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+                      ) : <span className="text-sm text-gray-700">{c.teeth_count ?? '—'}</span>}
+                    </td>
+                    <td className="px-3 py-3">
+                      {isAdmin ? (
+                        <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
+                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+                      ) : <span className="text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</span>}
+                    </td>
                     <td className="px-5 py-4 text-sm">
                       {isAdmin || canEdit ? (
                         <select
