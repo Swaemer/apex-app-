@@ -11,6 +11,14 @@ import { useAuth } from '../context/AuthContext';
 
 const STATUSES = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
 
+const DOCTORS = [
+  'د.محمد كامل',
+  'د.وليد عثمان',
+  'د.سارة شوكت',
+  'د.نسمة عبدالله',
+  'د.وائل مصطفى',
+];
+
 const statusColors: Record<string, string> = {
   'في المعمل':    'bg-yellow-50 text-yellow-700 border-yellow-200',
   'تم الاستلام':  'bg-green-50 text-green-700 border-green-200',
@@ -26,7 +34,7 @@ export const LabPage = () => {
   const [filter, setFilter] = useState('الكل');
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', teeth_count: '', lab_name: 'معمل سكاكا' });
+  const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' });
 
   const load = async () => {
     setLoading(true);
@@ -62,11 +70,13 @@ export const LabPage = () => {
       await addLabCase({
         patient_name: newCase.patient_name.trim(),
         file_number: newCase.file_number.trim() || null,
+        doctor_name: newCase.doctor_name || null,
+        case_type: newCase.case_type.trim() || null,
         teeth_count: newCase.teeth_count ? parseInt(newCase.teeth_count) : null,
         lab_name: newCase.lab_name,
       });
       toast.success('تم إضافة الحالة');
-      setNewCase({ patient_name: '', file_number: '', teeth_count: '', lab_name: 'معمل سكاكا' });
+      setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' });
       setShowForm(false);
     } catch { toast.error('خطأ في الإضافة'); }
   };
@@ -147,6 +157,27 @@ export const LabPage = () => {
                 />
               </div>
               <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">اسم الدكتور</label>
+                <select
+                  value={newCase.doctor_name}
+                  onChange={(e) => setNewCase((p) => ({ ...p, doctor_name: e.target.value }))}
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+                >
+                  <option value="">-- اختر الدكتور --</option>
+                  {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">نوع الحالة</label>
+                <input
+                  type="text"
+                  value={newCase.case_type}
+                  onChange={(e) => setNewCase((p) => ({ ...p, case_type: e.target.value }))}
+                  placeholder="مثال: تركيب، جسر، ..."
+                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+                />
+              </div>
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">عدد الأسنان</label>
                 <input
                   type="number"
@@ -172,7 +203,7 @@ export const LabPage = () => {
               <button onClick={handleAdd} className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all">
                 إضافة
               </button>
-              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', teeth_count: '', lab_name: 'معمل سكاكا' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
+              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
                 إلغاء
               </button>
             </div>
@@ -204,6 +235,8 @@ export const LabPage = () => {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">اسم المريض</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">رقم الملف</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الدكتور</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">نوع الحالة</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">المعمل</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">عدد الأسنان</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الخروج</th>
@@ -218,6 +251,8 @@ export const LabPage = () => {
                   <tr key={c.id} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
                     <td className="px-5 py-4 text-sm font-medium text-gray-900">{c.patient_name}</td>
                     <td className="px-5 py-4 text-sm text-gray-700">{c.file_number ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700">{c.doctor_name ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700">{c.case_type ?? '—'}</td>
                     <td className="px-5 py-4 text-sm font-medium text-blue-700">{c.lab_name}</td>
                     <td className="px-5 py-4 text-sm text-gray-700">{c.teeth_count ?? '—'}</td>
                     <td className="px-5 py-4 text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</td>
@@ -270,7 +305,7 @@ export const LabPage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 9 : 8} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={isAdmin ? 11 : 10} className="px-6 py-12 text-center text-gray-400">
                       {loading ? 'جاري التحميل...' : 'لا توجد حالات — اضغط "حالة جديدة" للإضافة'}
                     </td>
                   </tr>
