@@ -130,175 +130,78 @@ export const HomePage = () => {
   const myRate = myTotal > 0 ? Math.round((myDone / myTotal) * 100) : 0;
   const motivation = motivationalMessages(myRate);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto">
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
+        <div className="max-w-6xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-1">لوحة التحكم</h1>
+            <p className="text-gray-500">مرحباً بك في Apex Dashboard</p>
+          </div>
 
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-1">لوحة التحكم</h1>
-          <p className="text-gray-500">مرحباً بك في Apex Dashboard</p>
-        </div>
-
-        {/* ======== داشبورد الأدمن ======== */}
-        {isAdmin && !loadingStats && (
-          <>
-            {/* إحصائيات عامة */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
-                <p className="text-xs text-gray-500 mb-1">إجمالي الـ Leads</p>
-                <p className="text-3xl font-bold text-gray-900">{totalLeads}</p>
+          {!loadingStats && (
+            <>
+              {/* إحصائيات Leads */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
+                  <p className="text-xs text-gray-500 mb-1">إجمالي الـ Leads</p>
+                  <p className="text-3xl font-bold text-gray-900">{totalLeads}</p>
+                </div>
+                {STATUSES.map((s) => {
+                  const count = leads.filter((l) => l.status === s).length;
+                  return (
+                    <div key={s} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
+                      <p className="text-xs text-gray-500 mb-1">{s}</p>
+                      <p className="text-3xl font-bold text-gray-900">{count}</p>
+                      <p className="text-xs text-gray-400 mt-1">{totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0}%</p>
+                    </div>
+                  );
+                })}
               </div>
-              {STATUSES.map((s) => {
-                const count = leads.filter((l) => l.status === s).length;
-                return (
-                  <div key={s} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
-                    <p className="text-xs text-gray-500 mb-1">{s}</p>
-                    <p className="text-3xl font-bold text-gray-900">{count}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0}%
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
 
-            {/* نسبة الإنجاز الكلية */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-medium text-gray-600">نسبة الإنجاز الكلية</span>
-                <span className="text-2xl font-bold text-green-600">{completionRate}%</span>
+              {/* نسبة الإنجاز */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-gray-600">نسبة الإنجاز الكلية</span>
+                  <span className="text-2xl font-bold text-green-600">{completionRate}%</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-3">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-700" style={{ width: `${completionRate}%` }} />
+                </div>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-3">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-700"
-                  style={{ width: `${completionRate}%` }}
-                />
-              </div>
-            </div>
 
-            {/* أداء الفريق */}
-            {employees.length > 0 && (
-              <div className="mb-8">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">أداء الفريق</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {employees.map((emp) => {
-                    const empLeads = leads.filter((l) => l.assigned_to === emp.name);
-                    const empDone = empLeads.filter((l) => l.status === 'مبيعة').length;
-                    const empRate = empLeads.length > 0 ? Math.round((empDone / empLeads.length) * 100) : 0;
-                    return (
-                      <div key={emp.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-right">
-                        <div className="flex items-center justify-between mb-4">
-                          <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">
-                            {empRate}% إنجاز
-                          </span>
-                          <div>
-                            <p className="font-bold text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-400">{empLeads.length} lead</p>
+              {/* أداء الفريق */}
+              {employees.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-bold text-gray-900 mb-4">أداء الفريق</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {employees.map((emp) => {
+                      const empLeads = leads.filter((l) => l.assigned_to === emp.name);
+                      const empDone = empLeads.filter((l) => l.status === 'مبيعة').length;
+                      const empRate = empLeads.length > 0 ? Math.round((empDone / empLeads.length) * 100) : 0;
+                      return (
+                        <div key={emp.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-right">
+                          <div className="flex items-center justify-between mb-4">
+                            <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-1 rounded-lg border border-green-100">{empRate}% إنجاز</span>
+                            <div><p className="font-bold text-gray-900">{emp.name}</p><p className="text-xs text-gray-400">{empLeads.length} lead</p></div>
+                          </div>
+                          <div className="flex gap-2 flex-wrap mb-4">
+                            {STATUSES.map((s) => {
+                              const cnt = empLeads.filter((l) => l.status === s).length;
+                              return <span key={s} className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColors[s]}`}>{s}: {cnt}</span>;
+                            })}
+                          </div>
+                          <div className="w-full bg-gray-100 rounded-full h-2">
+                            <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{ width: `${empRate}%` }} />
                           </div>
                         </div>
-                        <div className="flex gap-2 flex-wrap mb-4">
-                          {STATUSES.map((s) => {
-                            const cnt = empLeads.filter((l) => l.status === s).length;
-                            return (
-                              <span key={s} className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColors[s]}`}>
-                                {s}: {cnt}
-                              </span>
-                            );
-                          })}
-                        </div>
-                        <div className="w-full bg-gray-100 rounded-full h-2">
-                          <div
-                            className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full transition-all duration-700"
-                            style={{ width: `${empRate}%` }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
-        )}
-
-        {/* كرت طلب الإجازة */}
-        {!isAdmin && !loadingStats && (
-          <div className="mb-6">
-            <button onClick={() => navigate('/leave')}
-              className="w-full bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white text-right hover:shadow-lg transition-all group">
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-lg text-sm font-medium group-hover:bg-white/30 transition-all">
-                  افتح الآن <MdAssignment className="w-4 h-4" />
-                </div>
-                <div>
-                  <p className="text-white/70 text-sm mb-1">استقبال المرضى</p>
-                  <p className="text-2xl font-bold">طلبات الإجازة المرضية</p>
-                </div>
-              </div>
-            </button>
-          </div>
-        )}
-
-        {/* ======== داشبورد الموظف ======== */}
-        {!isAdmin && !loadingStats && (
-          <div className="mb-8">
-            {/* رسالة تحفيزية */}
-            <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-6 mb-6 text-white text-right">
-              <div className="flex items-center justify-between">
-                <span className="text-5xl">{motivation.emoji}</span>
-                <div>
-                  <p className="text-white/70 text-sm mb-1">مرحباً {userName}</p>
-                  <p className="text-xl font-bold">{motivation.text}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* إحصائيات الموظف */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
-                <p className="text-xs text-gray-500 mb-1">إجمالي leads</p>
-                <p className="text-3xl font-bold text-gray-900">{myTotal}</p>
-              </div>
-              {STATUSES.map((s) => {
-                const count = myLeads.filter((l) => l.status === s).length;
-                return (
-                  <div key={s} className={`rounded-2xl border shadow-sm p-5 text-right ${statusColors[s]}`}>
-                    <p className="text-xs opacity-70 mb-1">{s}</p>
-                    <p className="text-3xl font-bold">{count}</p>
+                      );
+                    })}
                   </div>
-                );
-              })}
-            </div>
-
-            {/* شريط تقدم الموظف */}
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-2xl font-bold text-green-600">{myRate}%</span>
-                <span className="text-sm font-medium text-gray-600">نسبة إنجازك</span>
-              </div>
-              <div className="w-full bg-gray-100 rounded-full h-4">
-                <div
-                  className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-700 flex items-center justify-end pr-2"
-                  style={{ width: `${Math.max(myRate, 5)}%` }}
-                >
-                  {myRate > 10 && (
-                    <span className="text-white text-xs font-bold">{myRate}%</span>
-                  )}
                 </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-400 mt-2">
-                <span>منجز: {myDone}</span>
-                <span>متبقي: {myTotal - myDone}</span>
-              </div>
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* ======== قسم المعمل والأطباء — للأدمن فقط ======== */}
-        {isAdmin && !loadingStats && (
-            <>{/* إحصائيات المعمل */}
-            {labCases.length >= 0 && (
+              {/* إحصائيات المعمل */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات المعمل</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -307,160 +210,210 @@ export const HomePage = () => {
                     <p className="text-3xl font-bold text-gray-900">{labCases.length}</p>
                   </div>
                   {labStatuses.map((s) => {
-                    const colors: Record<string, string> = {
-                      'في المعمل': 'text-yellow-700',
-                      'تم الاستلام': 'text-green-700',
-                      'أعيد للمعمل': 'text-red-700',
-                    };
+                    const colors: Record<string, string> = { 'في المعمل': 'text-yellow-700', 'تم الاستلام': 'text-green-700', 'أعيد للمعمل': 'text-red-700' };
                     return (
                       <div key={s} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
                         <p className="text-xs text-gray-500 mb-1">{s}</p>
-                        <p className={`text-3xl font-bold ${colors[s]}`}>
-                          {labCases.filter((c) => c.status === s).length}
-                        </p>
+                        <p className={`text-3xl font-bold ${colors[s]}`}>{labCases.filter((c) => c.status === s).length}</p>
                       </div>
                     );
                   })}
                 </div>
+              </div>
 
-                {/* صلاحيات تعديل المعمل + طلبات الإجازة */}
-                {employees.length > 0 && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                      <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
-                      <div className="divide-y divide-gray-100">
-                        {employees.map((emp) => (
-                          <div key={emp.id} className="flex items-center justify-between py-3">
-                            <button onClick={() => toggleLabPermission(emp)}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'}`}>
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'}`} />
-                            </button>
-                            <div className="text-right">
-                              <p className="font-medium text-gray-900">{emp.name}</p>
-                              <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
-                            </div>
+              {/* الصلاحيات */}
+              {employees.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
+                    <div className="divide-y divide-gray-100">
+                      {employees.map((emp) => (
+                        <div key={emp.id} className="flex items-center justify-between py-3">
+                          <button onClick={() => toggleLabPermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'}`} />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">{emp.name}</p>
+                            <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
                           </div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                      <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات طلبات الإجازة</h3>
-                      <div className="divide-y divide-gray-100">
-                        {employees.map((emp) => (
-                          <div key={emp.id} className="flex items-center justify-between py-3">
-                            <button onClick={() => toggleLeavePermission(emp)}
-                              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
-                              <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
-                            </button>
-                            <div className="text-right">
-                              <p className="font-medium text-gray-900">{emp.name}</p>
-                              <p className="text-xs text-gray-400">{emp.can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* إدارة الأطباء */}
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                  <h3 className="text-base font-bold text-gray-900 mb-4">إدارة فريق الأطباء</h3>
-                  <div className="flex gap-2 mb-4">
-                    <button onClick={handleAddDoctor}
-                      className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium hover:shadow-md transition-all flex items-center gap-1">
-                      <MdAdd className="w-4 h-4" /> إضافة
-                    </button>
-                    <input type="text" value={newDoctorName} onChange={(e) => setNewDoctorName(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleAddDoctor()}
-                      placeholder="اسم الطبيب الجديد"
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300" />
-                  </div>
-                  <div className="divide-y divide-gray-100">
-                    {doctors.map((doc) => (
-                      <div key={doc.id} className="flex items-center justify-between py-2.5 gap-2">
-                        <div className="flex gap-1">
-                          {editingDoctorId === doc.id ? (
-                            <>
-                              <button onClick={() => handleUpdateDoctor(doc.id)}
-                                className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg transition-colors">
-                                <MdCheck className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => setEditingDoctorId(null)}
-                                className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg transition-colors">
-                                <MdClose className="w-4 h-4" />
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <button onClick={() => { setEditingDoctorId(doc.id); setEditingDoctorName(doc.name); }}
-                                className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors">
-                                <MdEdit className="w-4 h-4" />
-                              </button>
-                              <button onClick={() => handleDeleteDoctor(doc.id)}
-                                className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                                <MdDelete className="w-4 h-4" />
-                              </button>
-                            </>
-                          )}
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات طلبات الإجازة</h3>
+                    <div className="divide-y divide-gray-100">
+                      {employees.map((emp) => (
+                        <div key={emp.id} className="flex items-center justify-between py-3">
+                          <button onClick={() => toggleLeavePermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">{emp.name}</p>
+                            <p className="text-xs text-gray-400">{emp.can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* إدارة الأطباء */}
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+                <h3 className="text-base font-bold text-gray-900 mb-4">إدارة فريق الأطباء</h3>
+                <div className="flex gap-2 mb-4">
+                  <button onClick={handleAddDoctor} className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium flex items-center gap-1">
+                    <MdAdd className="w-4 h-4" /> إضافة
+                  </button>
+                  <input type="text" value={newDoctorName} onChange={(e) => setNewDoctorName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddDoctor()}
+                    placeholder="اسم الطبيب الجديد" className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300" />
+                </div>
+                <div className="divide-y divide-gray-100">
+                  {doctors.map((doc) => (
+                    <div key={doc.id} className="flex items-center justify-between py-2.5 gap-2">
+                      <div className="flex gap-1">
                         {editingDoctorId === doc.id ? (
-                          <input type="text" value={editingDoctorName} onChange={(e) => setEditingDoctorName(e.target.value)}
-                            className="flex-1 text-left px-2 py-1 border border-blue-300 rounded-lg text-sm focus:outline-none bg-white" />
+                          <>
+                            <button onClick={() => handleUpdateDoctor(doc.id)} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><MdCheck className="w-4 h-4" /></button>
+                            <button onClick={() => setEditingDoctorId(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><MdClose className="w-4 h-4" /></button>
+                          </>
                         ) : (
-                          <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                          <>
+                            <button onClick={() => { setEditingDoctorId(doc.id); setEditingDoctorName(doc.name); }} className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg"><MdEdit className="w-4 h-4" /></button>
+                            <button onClick={() => handleDeleteDoctor(doc.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg"><MdDelete className="w-4 h-4" /></button>
+                          </>
                         )}
                       </div>
-                    ))}
+                      {editingDoctorId === doc.id
+                        ? <input type="text" value={editingDoctorName} onChange={(e) => setEditingDoctorName(e.target.value)} className="flex-1 px-2 py-1 border border-blue-300 rounded-lg text-sm focus:outline-none bg-white" />
+                        : <p className="text-sm font-medium text-gray-900">{doc.name}</p>
+                      }
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
+
+          {/* القائمة */}
+          <div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">القائمة الرئيسية</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <button onClick={() => navigate('/leads')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group">
+                <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center"><MdLeaderboard className="text-white text-xl" /></div></div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">إدارة العملاء المحتملين</h3>
+                <p className="text-gray-600 text-sm mb-4">إدارة وتتبع العملاء المحتملين</p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+              </button>
+              <button onClick={() => navigate('/lab')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group">
+                <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center"><MdScience className="text-white text-xl" /></div></div>
+                <h3 className="text-xl font-bold text-gray-900 mb-2">استقبال المعمل</h3>
+                <p className="text-gray-600 text-sm mb-4">متابعة حالات الشحن والاستلام من المعمل</p>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+              </button>
+              <div className="bg-gray-50 rounded-2xl border border-gray-200 border-dashed p-8 text-right opacity-40">
+                <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4"><span className="text-2xl">🔒</span></div>
+                <h3 className="text-xl font-bold text-gray-700 mb-2">قادم قريباً</h3>
+                <p className="text-gray-500 text-sm">ميزات جديدة قيد الإعداد</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ======== عرض الموظف ========
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
+      <div className="max-w-6xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-1">لوحة التحكم</h1>
+          <p className="text-gray-500">مرحباً بك في Apex Dashboard</p>
+        </div>
+
+        {!loadingStats && (
+          <>
+            {/* كرت طلب الإجازة */}
+            <div className="mb-6">
+              <button onClick={() => navigate('/leave')}
+                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white text-right hover:shadow-lg transition-all group">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-lg text-sm font-medium group-hover:bg-white/30 transition-all">
+                    افتح الآن <MdAssignment className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">استقبال المرضى</p>
+                    <p className="text-2xl font-bold">طلبات الإجازة المرضية</p>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {/* داشبورد الموظف */}
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-6 mb-6 text-white text-right">
+                <div className="flex items-center justify-between">
+                  <span className="text-5xl">{motivation.emoji}</span>
+                  <div>
+                    <p className="text-white/70 text-sm mb-1">مرحباً {userName}</p>
+                    <p className="text-xl font-bold">{motivation.text}</p>
                   </div>
                 </div>
               </div>
-            )}
-            </>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 text-right">
+                  <p className="text-xs text-gray-500 mb-1">إجمالي leads</p>
+                  <p className="text-3xl font-bold text-gray-900">{myTotal}</p>
+                </div>
+                {STATUSES.map((s) => {
+                  const count = myLeads.filter((l) => l.status === s).length;
+                  return (
+                    <div key={s} className={`rounded-2xl border shadow-sm p-5 text-right ${statusColors[s]}`}>
+                      <p className="text-xs opacity-70 mb-1">{s}</p>
+                      <p className="text-3xl font-bold">{count}</p>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-2xl font-bold text-green-600">{myRate}%</span>
+                  <span className="text-sm font-medium text-gray-600">نسبة إنجازك</span>
+                </div>
+                <div className="w-full bg-gray-100 rounded-full h-4">
+                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-700 flex items-center justify-end pr-2" style={{ width: `${Math.max(myRate, 5)}%` }}>
+                    {myRate > 10 && <span className="text-white text-xs font-bold">{myRate}%</span>}
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-gray-400 mt-2">
+                  <span>منجز: {myDone}</span>
+                  <span>متبقي: {myTotal - myDone}</span>
+                </div>
+              </div>
+            </div>
+          </>
         )}
 
         {/* القائمة */}
         <div>
           <h2 className="text-xl font-bold text-gray-900 mb-4">القائمة الرئيسية</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <button
-              onClick={() => navigate('/leads')}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group"
-            >
-              <div className="mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow">
-                  <MdLeaderboard className="text-white text-xl" />
-                </div>
-              </div>
+            <button onClick={() => navigate('/leads')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group">
+              <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdLeaderboard className="text-white text-xl" /></div></div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">إدارة العملاء المحتملين</h3>
               <p className="text-gray-600 text-sm mb-4">إدارة وتتبع العملاء المحتملين</p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium group-hover:gap-3 transition-all">
-                افتح الآن
-                <FiArrowLeft className="w-4 h-4" />
-              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
             </button>
-
-            <button
-              onClick={() => navigate('/lab')}
-              className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group"
-            >
-              <div className="mb-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow">
-                  <MdScience className="text-white text-xl" />
-                </div>
-              </div>
+            <button onClick={() => navigate('/lab')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-slate-300 transition-all text-right group">
+              <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdScience className="text-white text-xl" /></div></div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">استقبال المعمل</h3>
               <p className="text-gray-600 text-sm mb-4">متابعة حالات الشحن والاستلام من المعمل</p>
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium group-hover:gap-3 transition-all">
-                افتح الآن
-                <FiArrowLeft className="w-4 h-4" />
-              </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
             </button>
-
             <div className="bg-gray-50 rounded-2xl border border-gray-200 border-dashed p-8 text-right opacity-40">
-              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4">
-                <span className="text-2xl">🔒</span>
-              </div>
+              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4"><span className="text-2xl">🔒</span></div>
               <h3 className="text-xl font-bold text-gray-700 mb-2">قادم قريباً</h3>
               <p className="text-gray-500 text-sm">ميزات جديدة قيد الإعداد</p>
             </div>
