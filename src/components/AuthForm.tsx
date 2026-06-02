@@ -74,7 +74,9 @@ export const AuthForm = () => {
         if (error) {
           toast.error(error.message.includes('already registered') ? 'هذا الحساب مسجل بالفعل' : `خطأ: ${error.message}`);
         } else {
-          toast.success('تم التسجيل بنجاح!');
+          // أخرج المستخدم فوراً بعد التسجيل — لازم يسجّل دخول يدوياً
+          await supabase.auth.signOut();
+          toast.success('تم التسجيل! سجّل دخولك الآن');
           setFormData({ name: '', email: '', password: '', confirmPassword: '' });
           setMode('login');
         }

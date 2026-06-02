@@ -19,25 +19,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const loadUser = async () => {
-    const { data: { user: u } } = await supabase.auth.getUser();
-    if (u) {
-      setUser({
+  useEffect(() => {
+    // تحقق سريع من الجلسة المحفوظة
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      const u = session?.user ?? null;
+      setUser(u ? {
         name: u.user_metadata?.name || u.email || '',
         email: u.email || '',
         isAdmin: u.user_metadata?.role === 'admin',
-      });
-    } else {
-      setUser(null);
-    }
-    setLoading(false);
-  };
+      } : null);
+      setLoading(false);
+    });
 
-  useEffect(() => {
-    loadUser();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      loadUser();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const u = session?.user ?? null;
+      setUser(u ? {
+        name: u.user_metadata?.name || u.email || '',
+        email: u.email || '',
+        isAdmin: u.user_metadata?.role === 'admin',
+      } : null);
     });
 
     return () => subscription.unsubscribe();
