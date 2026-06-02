@@ -295,7 +295,9 @@ export const HomePage = () => {
           </div>
         )}
 
-            {/* إحصائيات المعمل */}
+        {/* ======== قسم المعمل والأطباء — للأدمن فقط ======== */}
+        {isAdmin && !loadingStats && (
+            <>{/* إحصائيات المعمل */}
             {labCases.length >= 0 && (
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات المعمل</h2>
@@ -414,6 +416,8 @@ export const HomePage = () => {
                 </div>
               </div>
             )}
+            </>
+        )}
 
         {/* القائمة */}
         <div>
