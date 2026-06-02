@@ -37,6 +37,7 @@ export const LabPage = () => {
   const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
   const [pending, setPending] = useState<Record<number, Partial<LabCase>>>({});
   const [saving, setSaving] = useState<Record<number, boolean>>({});
+  const [editingId, setEditingId] = useState<number | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -89,6 +90,12 @@ export const LabPage = () => {
     setCases((prev) => prev.map((c) => c.id === id ? { ...c, [field]: value || null } : c));
   };
 
+  const handleCancelEdit = (id: number) => {
+    setEditingId(null);
+    setPending((prev) => { const n = { ...prev }; delete n[id]; return n; });
+    load(); // أعد تحميل البيانات الأصلية
+  };
+
   const handleSave = async (id: number) => {
     const changes = pending[id];
     if (!changes) return;
@@ -96,6 +103,7 @@ export const LabPage = () => {
     try {
       await updateLabCase(id, changes);
       setPending((prev) => { const n = { ...prev }; delete n[id]; return n; });
+      setEditingId(null);
       toast.success('تم الحفظ');
     } catch {
       toast.error('خطأ في الحفظ');
@@ -279,103 +287,98 @@ export const LabPage = () => {
               </thead>
               <tbody>
                 {filtered.length > 0 ? filtered.map((c) => (
-                  <tr key={c.id} className={`border-b border-gray-100 transition-colors ${pending[c.id] ? 'bg-yellow-50' : 'hover:bg-gray-50'}`}>
+                  <tr key={c.id} className={`border-b border-gray-100 transition-colors ${editingId === c.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-900 focus:outline-none focus:border-gray-400 bg-white min-w-[100px]" />
+                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-900 focus:outline-none bg-white min-w-[100px]" />
                       ) : <span className="text-sm font-medium text-gray-900">{c.patient_name}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white min-w-[70px]" />
+                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white min-w-[70px]" />
                       ) : <span className="text-sm text-gray-700">{c.file_number ?? '—'}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white">
+                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white">
                           <option value="">—</option>
                           {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
                         </select>
                       ) : <span className="text-sm text-gray-700">{c.doctor_name ?? '—'}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
-                          className="w-full px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white min-w-[80px]" />
+                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white min-w-[80px]" />
                       ) : <span className="text-sm text-gray-700">{c.case_type ?? '—'}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs font-medium text-blue-700 focus:outline-none focus:border-gray-400 bg-white">
+                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 focus:outline-none bg-white">
                           <option value="معمل سكاكا">معمل سكاكا</option>
                           <option value="معمل بريدة">معمل بريدة</option>
                         </select>
                       ) : <span className="text-sm font-medium text-blue-700">{c.lab_name}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
-                          className="w-16 px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+                          className="w-16 px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
                       ) : <span className="text-sm text-gray-700">{c.teeth_count ?? '—'}</span>}
                     </td>
                     <td className="px-3 py-3">
-                      {isAdmin ? (
+                      {editingId === c.id ? (
                         <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-white" />
+                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
                       ) : <span className="text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</span>}
                     </td>
-                    <td className="px-5 py-4 text-sm">
-                      {isAdmin || canEdit ? (
-                        <select
-                          value={c.status}
-                          onChange={(e) => handleChange(c.id, 'status', e.target.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}
-                        >
+                    <td className="px-3 py-3">
+                      {editingId === c.id ? (
+                        <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
+                          className={`px-2 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
                           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
                         </select>
                       ) : (
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                          {c.status}
-                        </span>
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>{c.status}</span>
                       )}
                     </td>
-                    <td className="px-5 py-4 text-sm">
-                      {isAdmin || canEdit ? (
-                        <input
-                          type="date"
-                          value={c.received_date ?? ''}
-                          onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
-                        />
+                    <td className="px-3 py-3">
+                      {editingId === c.id ? (
+                        <input type="date" value={c.received_date ?? ''} onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
+                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
                       ) : (
                         <span className="text-gray-500 text-xs">{c.received_date ? new Date(c.received_date).toLocaleDateString('ar-SA') : '—'}</span>
                       )}
                     </td>
-                    <td className="px-5 py-4 text-sm">
-                      {isAdmin || canEdit ? (
-                        <input
-                          type="date"
-                          value={c.return_date ?? ''}
-                          onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
-                          className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
-                        />
+                    <td className="px-3 py-3">
+                      {editingId === c.id ? (
+                        <input type="date" value={c.return_date ?? ''} onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
+                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
                       ) : (
                         <span className="text-gray-500 text-xs">{c.return_date ? new Date(c.return_date).toLocaleDateString('ar-SA') : '—'}</span>
                       )}
                     </td>
                     {(isAdmin || canEdit) && (
-                      <td className="px-5 py-4 text-center">
-                        {pending[c.id] && (
-                          <button
-                            onClick={() => handleSave(c.id)}
-                            disabled={saving[c.id]}
-                            className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all disabled:opacity-50"
-                          >
-                            {saving[c.id] ? '...' : 'حفظ'}
+                      <td className="px-3 py-3 text-center">
+                        {editingId === c.id ? (
+                          <div className="flex gap-1 justify-center">
+                            <button onClick={() => handleSave(c.id)} disabled={saving[c.id]}
+                              className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all disabled:opacity-50">
+                              {saving[c.id] ? '...' : 'حفظ'}
+                            </button>
+                            <button onClick={() => handleCancelEdit(c.id)}
+                              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-all">
+                              إلغاء
+                            </button>
+                          </div>
+                        ) : (
+                          <button onClick={() => setEditingId(c.id)}
+                            className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all">
+                            تعديل
                           </button>
                         )}
                       </td>
