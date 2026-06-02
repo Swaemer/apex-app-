@@ -35,6 +35,8 @@ export const LabPage = () => {
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
+  const [pending, setPending] = useState<Record<number, Partial<LabCase>>>({});
+  const [saving, setSaving] = useState<Record<number, boolean>>({});
 
   const load = async () => {
     setLoading(true);
@@ -82,11 +84,24 @@ export const LabPage = () => {
     } catch { toast.error('خطأ في الإضافة'); }
   };
 
-  const handleUpdate = async (id: number, field: keyof LabCase, value: string) => {
+  const handleChange = (id: number, field: keyof LabCase, value: string) => {
+    setPending((prev) => ({ ...prev, [id]: { ...prev[id], [field]: value || null } }));
+    setCases((prev) => prev.map((c) => c.id === id ? { ...c, [field]: value || null } : c));
+  };
+
+  const handleSave = async (id: number) => {
+    const changes = pending[id];
+    if (!changes) return;
+    setSaving((prev) => ({ ...prev, [id]: true }));
     try {
-      await updateLabCase(id, { [field]: value || null });
-      setCases((prev) => prev.map((c) => c.id === id ? { ...c, [field]: value || null } : c));
-    } catch { toast.error('خطأ في التحديث'); }
+      await updateLabCase(id, changes);
+      setPending((prev) => { const n = { ...prev }; delete n[id]; return n; });
+      toast.success('تم الحفظ');
+    } catch {
+      toast.error('خطأ في الحفظ');
+    } finally {
+      setSaving((prev) => ({ ...prev, [id]: false }));
+    }
   };
 
   const handleDelete = async (id: number) => {
@@ -258,6 +273,7 @@ export const LabPage = () => {
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الاستلام</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الإعادة</th>
+                  {(isAdmin || canEdit) && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">حفظ</th>}
                   {isAdmin && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">حذف</th>}
                 </tr>
               </thead>
@@ -275,7 +291,7 @@ export const LabPage = () => {
                       {isAdmin || canEdit ? (
                         <select
                           value={c.status}
-                          onChange={(e) => handleUpdate(c.id, 'status', e.target.value)}
+                          onChange={(e) => handleChange(c.id, 'status', e.target.value)}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}
                         >
                           {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
@@ -291,7 +307,7 @@ export const LabPage = () => {
                         <input
                           type="date"
                           value={c.received_date ?? ''}
-                          onChange={(e) => handleUpdate(c.id, 'received_date', e.target.value)}
+                          onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
                           className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
                         />
                       ) : (
@@ -303,13 +319,26 @@ export const LabPage = () => {
                         <input
                           type="date"
                           value={c.return_date ?? ''}
-                          onChange={(e) => handleUpdate(c.id, 'return_date', e.target.value)}
+                          onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
                           className="px-2 py-1 border border-gray-200 rounded-lg text-xs text-gray-700 focus:outline-none focus:border-gray-400 bg-gray-50"
                         />
                       ) : (
                         <span className="text-gray-500 text-xs">{c.return_date ? new Date(c.return_date).toLocaleDateString('ar-SA') : '—'}</span>
                       )}
                     </td>
+                    {(isAdmin || canEdit) && (
+                      <td className="px-5 py-4 text-center">
+                        {pending[c.id] && (
+                          <button
+                            onClick={() => handleSave(c.id)}
+                            disabled={saving[c.id]}
+                            className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all disabled:opacity-50"
+                          >
+                            {saving[c.id] ? '...' : 'حفظ'}
+                          </button>
+                        )}
+                      </td>
+                    )}
                     {isAdmin && (
                       <td className="px-5 py-4 text-center">
                         <button onClick={() => handleDelete(c.id)} className="text-red-500 hover:text-red-700 transition-colors">
@@ -320,7 +349,7 @@ export const LabPage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 11 : 10} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={isAdmin ? 13 : (canEdit ? 12 : 11)} className="px-6 py-12 text-center text-gray-400">
                       {loading ? 'جاري التحميل...' : 'لا توجد حالات — اضغط "حالة جديدة" للإضافة'}
                     </td>
                   </tr>
