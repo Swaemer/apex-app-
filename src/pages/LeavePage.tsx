@@ -18,7 +18,7 @@ const statusColors: Record<string, string> = {
 
 const emptyForm = {
   patient_name: '', phone: '', birth_date: '', id_number: '',
-  days_count: '', doctor_name: '',
+  days_count: '', doctor_name: '', same_day: false,
 };
 
 export const LeavePage = () => {
@@ -77,6 +77,7 @@ export const LeavePage = () => {
         id_number: form.id_number.trim() || null,
         days_count: parseInt(form.days_count),
         doctor_name: form.doctor_name,
+        same_day: form.same_day,
       });
       toast.success('تم إرسال الطلب');
       setForm(emptyForm);
@@ -175,7 +176,16 @@ export const LeavePage = () => {
                 </select>
               </div>
             </div>
-            <div className="flex gap-3">
+            <label className="flex items-center gap-3 cursor-pointer mt-2">
+              <input
+                type="checkbox"
+                checked={form.same_day}
+                onChange={(e) => setForm((p) => ({ ...p, same_day: e.target.checked }))}
+                className="w-5 h-5 accent-purple-600 rounded"
+              />
+              <span className="text-sm font-medium text-gray-700">الإجازة بنفس اليوم</span>
+            </label>
+            <div className="flex gap-3 mt-4">
               <button onClick={handleSubmit}
                 className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all">
                 إرسال الطلب
@@ -214,6 +224,7 @@ export const LeavePage = () => {
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الميلاد</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">عدد الأيام</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الطبيب</th>
+                  <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">نفس اليوم</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">التاريخ</th>
                   {isAdmin && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">حذف</th>}
@@ -230,6 +241,13 @@ export const LeavePage = () => {
                     </td>
                     <td className="px-5 py-4 text-sm text-center font-bold text-gray-900">{r.days_count}</td>
                     <td className="px-5 py-4 text-sm text-gray-700">{r.doctor_name}</td>
+                    <td className="px-5 py-4 text-center">
+                      {r.same_day ? (
+                        <span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100 text-purple-700 rounded-full text-sm font-bold">✓</span>
+                      ) : (
+                        <span className="text-gray-300 text-sm">—</span>
+                      )}
+                    </td>
                     <td className="px-5 py-4 text-sm">
                       {isAdmin ? (
                         <select value={r.status} onChange={(e) => handleStatusChange(r.id, e.target.value)}
@@ -255,7 +273,7 @@ export const LeavePage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 9 : 8} className="px-6 py-12 text-center text-gray-400">
+                    <td colSpan={isAdmin ? 10 : 9} className="px-6 py-12 text-center text-gray-400">
                       {loading ? 'جاري التحميل...' : 'لا توجد طلبات'}
                     </td>
                   </tr>

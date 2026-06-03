@@ -8,6 +8,7 @@ export interface LeaveRequest {
   id_number: string | null;
   days_count: number;
   doctor_name: string;
+  same_day: boolean;
   status: string;
   created_at: string;
 }
