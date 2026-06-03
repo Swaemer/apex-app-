@@ -9,6 +9,7 @@ import { LeadsPage } from './pages/LeadsPage';
 import { LabPage } from './pages/LabPage';
 import { LeavePage } from './pages/LeavePage';
 import { OffersPage } from './pages/OffersPage';
+import { AnnouncementBanner } from './components/AnnouncementBanner';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
       <Toaster position="top-right" />
       <BrowserRouter>
         <Navbar />
+        <AnnouncementBanner />
         <main className="pt-24">
           <Routes>
             <Route path="/auth" element={<AuthPage />} />

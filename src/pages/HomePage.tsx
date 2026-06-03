@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend } from 'react-icons/md';
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
+import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement } from '../services/announcementService';
 import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
 import type { Doctor } from '../services/doctorService';
+import type { Announcement } from '../services/announcementService';
 
 const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد'];
 
@@ -41,6 +43,9 @@ export const HomePage = () => {
   const [newDoctorName, setNewDoctorName] = useState('');
   const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
   const [editingDoctorName, setEditingDoctorName] = useState('');
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [targetEmployees, setTargetEmployees] = useState<string[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -50,10 +55,11 @@ export const HomePage = () => {
         const allLeads = await getLeads();
         if (user.isAdmin) {
           setLeads(allLeads);
-          const [emps, cases, docs] = await Promise.all([getEmployees(), getLabCases(), getDoctors()]);
+          const [emps, cases, docs, anns] = await Promise.all([getEmployees(), getLabCases(), getDoctors(), getAllAnnouncements()]);
           setEmployees(emps);
           setLabCases(cases);
           setDoctors(docs);
+          setAnnouncements(anns);
         } else {
           setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
         }
@@ -107,6 +113,26 @@ export const HomePage = () => {
       await supabase.from('profiles').update({ can_submit_leave: newVal }).eq('id', emp.id);
       setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } : e));
     } catch { /* ignore */ }
+  };
+
+  const handleSendAnnouncement = async () => {
+    if (!newMessage.trim()) return;
+    try {
+      await createAnnouncement(newMessage.trim(), targetEmployees);
+      setAnnouncements(await getAllAnnouncements());
+      setNewMessage('');
+      setTargetEmployees([]);
+    } catch { /* ignore */ }
+  };
+
+  const handleDeactivate = async (id: number) => {
+    await deactivateAnnouncement(id);
+    setAnnouncements((prev) => prev.map((a) => a.id === id ? { ...a, is_active: false } : a));
+  };
+
+  const handleDeleteAnn = async (id: number) => {
+    await deleteAnnouncement(id);
+    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
   };
 
   const toggleLabPermission = async (emp: Profile) => {
@@ -295,6 +321,80 @@ export const HomePage = () => {
               </div>
             </>
           )}
+
+          {/* إدارة الإشعارات */}
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
+            <div className="flex items-center gap-2 mb-5">
+              <MdCampaign className="w-5 h-5 text-red-500" />
+              <h3 className="text-base font-bold text-gray-900">إرسال إشعار للموظفين</h3>
+            </div>
+
+            {/* نموذج الإشعار */}
+            <div className="space-y-3 mb-5">
+              <textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                placeholder="اكتب الرسالة هنا..."
+                rows={2}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:bg-white focus:border-red-300 transition-colors resize-none"
+              />
+              <div>
+                <p className="text-xs text-gray-500 mb-2">اختر المستلمين (اتركها فاضية لإرسال للكل)</p>
+                <div className="flex flex-wrap gap-2">
+                  {employees.map((emp) => (
+                    <label key={emp.id} className="flex items-center gap-1.5 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={targetEmployees.includes(emp.name)}
+                        onChange={(e) =>
+                          setTargetEmployees((prev) =>
+                            e.target.checked ? [...prev, emp.name] : prev.filter((n) => n !== emp.name)
+                          )
+                        }
+                        className="w-4 h-4 accent-red-500"
+                      />
+                      <span className="text-sm text-gray-700">{emp.name}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+              <button
+                onClick={handleSendAnnouncement}
+                disabled={!newMessage.trim()}
+                className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium hover:shadow-md transition-all disabled:opacity-50"
+              >
+                <MdSend className="w-4 h-4" /> إرسال الإشعار
+              </button>
+            </div>
+
+            {/* الإشعارات الحالية */}
+            {announcements.length > 0 && (
+              <div className="border-t border-gray-100 pt-4 space-y-2">
+                <p className="text-xs font-medium text-gray-500 mb-2">الإشعارات السابقة</p>
+                {announcements.map((a) => (
+                  <div key={a.id} className={`flex items-center justify-between gap-3 p-3 rounded-lg border text-sm ${a.is_active ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
+                    <div className="flex-1 text-right">
+                      <p className={`font-medium ${a.is_active ? 'text-red-800' : 'text-gray-600'}`}>{a.message}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {a.target_employees?.length ? `إلى: ${a.target_employees.join('، ')}` : 'للجميع'}
+                        {' · '}{new Date(a.created_at).toLocaleDateString('ar-SA')}
+                      </p>
+                    </div>
+                    <div className="flex gap-1 flex-shrink-0">
+                      {a.is_active && (
+                        <button onClick={() => handleDeactivate(a.id)} className="px-2.5 py-1 text-xs bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors">
+                          إيقاف
+                        </button>
+                      )}
+                      <button onClick={() => handleDeleteAnn(a.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                        <MdDelete className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* القائمة */}
           <div>
