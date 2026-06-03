@@ -43,6 +43,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [filterUser, setFilterUser] = useState<string>('الكل');
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [savedNote, setSavedNote] = useState<number | null>(null);
+  const [noteValues, setNoteValues] = useState<Record<number, string>>({});
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
@@ -182,10 +184,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     }
   };
 
-  const handleNotesChange = async (id: number, notes: string) => {
+  const handleNoteBlur = async (id: number) => {
+    const notes = noteValues[id] ?? leads.find((l) => l.id === id)?.notes ?? '';
     try {
       await updateLeadNotes(id, notes);
       setLeads((prev) => prev.map((l) => l.id === id ? { ...l, notes } : l));
+      setSavedNote(id);
+      setTimeout(() => setSavedNote(null), 2000);
     } catch {
       toast.error('خطأ في حفظ الملاحظة');
     }
@@ -311,13 +316,19 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                         </select>
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <input
-                          type="text"
-                          value={lead.notes || ''}
-                          onChange={(e) => handleNotesChange(lead.id, e.target.value)}
-                          placeholder="أضف ملاحظة..."
-                          className="w-full min-w-[160px] px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-400 transition-colors"
-                        />
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={noteValues[lead.id] ?? lead.notes ?? ''}
+                            onChange={(e) => setNoteValues((prev) => ({ ...prev, [lead.id]: e.target.value }))}
+                            onBlur={() => handleNoteBlur(lead.id)}
+                            placeholder="أضف ملاحظة..."
+                            className="w-full min-w-[160px] px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-400 transition-colors"
+                          />
+                          {savedNote === lead.id && (
+                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-green-600 text-xs font-medium">✓ محفوظ</span>
+                          )}
+                        </div>
                       </td>
                       {isAdmin && config.distribution?.enabled && (
                         <td className="px-6 py-4 text-sm">
