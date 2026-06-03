@@ -11,12 +11,12 @@ import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
 import type { Doctor } from '../services/doctorService';
 
-const STATUSES = ['جديد', 'متابعة', 'مبيعة'];
+const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد'];
 
 const statusColors: Record<string, string> = {
-  جديد: 'bg-blue-50 text-blue-700 border-blue-200',
-  متابعة: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-  مبيعة: 'bg-green-50 text-green-700 border-green-200',
+  جديد:             'bg-blue-50 text-blue-700 border-blue-200',
+  متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
+  'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
 };
 
 const motivationalMessages = (rate: number): { text: string; emoji: string } => {
@@ -121,12 +121,12 @@ export const HomePage = () => {
 
   // إحصائيات الأدمن
   const totalLeads = leads.length;
-  const totalDone = leads.filter((l) => l.status === 'مبيعة').length;
+  const totalDone = leads.filter((l) => l.status === 'تم حجز الموعد').length;
   const completionRate = totalLeads > 0 ? Math.round((totalDone / totalLeads) * 100) : 0;
 
   // إحصائيات الموظف
   const myTotal = myLeads.length;
-  const myDone = myLeads.filter((l) => l.status === 'مبيعة').length;
+  const myDone = myLeads.filter((l) => l.status === 'تم حجز الموعد').length;
   const myRate = myTotal > 0 ? Math.round((myDone / myTotal) * 100) : 0;
   const motivation = motivationalMessages(myRate);
 
@@ -177,7 +177,7 @@ export const HomePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {employees.map((emp) => {
                       const empLeads = leads.filter((l) => l.assigned_to === emp.name);
-                      const empDone = empLeads.filter((l) => l.status === 'مبيعة').length;
+                      const empDone = empLeads.filter((l) => l.status === 'تم حجز الموعد').length;
                       const empRate = empLeads.length > 0 ? Math.round((empDone / empLeads.length) * 100) : 0;
                       return (
                         <div key={emp.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-right">
