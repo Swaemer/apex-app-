@@ -45,6 +45,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [importing, setImporting] = useState(false);
   const [savedNote, setSavedNote] = useState<number | null>(null);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
+  const [showDistribute, setShowDistribute] = useState(false);
+  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
+  const [distributing, setDistributing] = useState(false);
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
@@ -174,6 +177,33 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
+  const handleDistribute = async () => {
+    if (selectedEmployees.length === 0) {
+      toast.error('اختر موظفاً واحداً على الأقل');
+      return;
+    }
+    setDistributing(true);
+    try {
+      const updates = leads.map((lead, index) => ({
+        id: lead.id,
+        assigned_to: selectedEmployees[index % selectedEmployees.length],
+      }));
+      await Promise.all(updates.map(({ id, assigned_to }) => updateLeadAssignment(id, assigned_to)));
+      setLeads((prev) =>
+        prev.map((lead, index) => ({
+          ...lead,
+          assigned_to: selectedEmployees[index % selectedEmployees.length],
+        }))
+      );
+      toast.success(`تم توزيع ${leads.length} lead على ${selectedEmployees.length} موظف`);
+      setShowDistribute(false);
+    } catch {
+      toast.error('خطأ في التوزيع');
+    } finally {
+      setDistributing(false);
+    }
+  };
+
   const handleAssignmentChange = async (id: number, assigned_to: string) => {
     try {
       await updateLeadAssignment(id, assigned_to);
@@ -212,13 +242,26 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           </div>
           <div className="flex gap-3">
             {isAdmin && (
-              <button
-                onClick={importFromSheets}
-                disabled={importing || !config.sheetsUrl}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-              >
-                {importing ? 'جاري الاستيراد...' : 'استيراد من Sheets'}
-              </button>
+              <>
+                <button
+                  onClick={importFromSheets}
+                  disabled={importing || !config.sheetsUrl}
+                  className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
+                >
+                  {importing ? 'جاري الاستيراد...' : 'استيراد من Sheets'}
+                </button>
+                {employeesList.length > 0 && (
+                  <button
+                    onClick={() => {
+                      setSelectedEmployees([...employeesList]);
+                      setShowDistribute(true);
+                    }}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+                  >
+                    توزيع تلقائي
+                  </button>
+                )}
+              </>
             )}
             <button
               onClick={loadLeads}
@@ -230,6 +273,47 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             </button>
           </div>
         </div>
+
+        {/* لوحة التوزيع التلقائي */}
+        {showDistribute && (
+          <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-2">توزيع Leads تلقائياً</h2>
+            <p className="text-sm text-gray-500 mb-4">اختر الموظفين اللي تبي توزّع عليهم — الغائبين اشيل علامتهم</p>
+            <div className="flex flex-wrap gap-3 mb-5">
+              {employeesList.map((name) => (
+                <label key={name} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedEmployees.includes(name)}
+                    onChange={(e) =>
+                      setSelectedEmployees((prev) =>
+                        e.target.checked ? [...prev, name] : prev.filter((n) => n !== name)
+                      )
+                    }
+                    className="w-4 h-4 accent-purple-600"
+                  />
+                  <span className="text-sm font-medium text-gray-800">{name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3 items-center">
+              <button
+                onClick={handleDistribute}
+                disabled={distributing || selectedEmployees.length === 0}
+                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50"
+              >
+                {distributing ? 'جاري التوزيع...' : `وزّع على ${selectedEmployees.length} موظف`}
+              </button>
+              <button
+                onClick={() => setShowDistribute(false)}
+                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+              >
+                إلغاء
+              </button>
+              <p className="text-xs text-gray-400">سيتم توزيع {leads.length} lead بالتساوي</p>
+            </div>
+          </div>
+        )}
 
         {/* Status Filters */}
         <div className="mb-6">
