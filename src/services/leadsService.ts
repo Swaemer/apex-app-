@@ -4,8 +4,10 @@ export interface Lead {
   id: number;
   name: string;
   phone: string;
+  service: string | null;
   status: string;
   assigned_to: string;
+  notes: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,6 +32,11 @@ export const upsertLeads = async (leads: NewLead[]): Promise<void> => {
 
 export const updateLeadStatus = async (id: number, status: string): Promise<void> => {
   const { error } = await supabase.from('leads').update({ status }).eq('id', id);
+  if (error) throw error;
+};
+
+export const updateLeadNotes = async (id: number, notes: string): Promise<void> => {
+  const { error } = await supabase.from('leads').update({ notes: notes || null }).eq('id', id);
   if (error) throw error;
 };
 

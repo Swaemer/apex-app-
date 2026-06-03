@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, upsertLeads, updateLeadStatus, deleteLead } from '../services/leadsService';
+import { getLeads, upsertLeads, updateLeadStatus, updateLeadNotes, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
 interface ColumnConfig {
   columnIndex: number;
   label: string;
-  field: 'name' | 'phone' | 'status';
+  field: 'name' | 'phone' | 'status' | 'service';
 }
 
 interface User {
@@ -93,7 +93,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
           return {
             name: lead.name || '',
             phone: lead.phone || '',
+            service: lead.service || null,
             status: lead.status || 'جديد',
+            notes: null,
             assigned_to: shouldDistribute ? assignUser(index, total) : 'لم يتم التعيين',
           };
         })
@@ -162,11 +164,20 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
 
   const getStatusBadgeColor = (status: string) => {
     const colors: Record<string, string> = {
-      جديد: 'bg-blue-50 text-blue-700 border-blue-200',
-      متابعة: 'bg-yellow-50 text-yellow-700 border-yellow-200',
-      مبيعة: 'bg-green-50 text-green-700 border-green-200',
+      جديد:             'bg-blue-50 text-blue-700 border-blue-200',
+      متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
+      'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
     };
     return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+  };
+
+  const handleNotesChange = async (id: number, notes: string) => {
+    try {
+      await updateLeadNotes(id, notes);
+      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, notes } : l));
+    } catch {
+      toast.error('خطأ في حفظ الملاحظة');
+    }
   };
 
   const allStatuses = ['الكل', ...config.statuses];
@@ -253,8 +264,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الاسم</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الهاتف</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الجوال</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الخدمة المطلوبة</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الملاحظات</th>
                   {isAdmin && config.distribution?.enabled && (
                     <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المسؤول</th>
                   )}
@@ -270,10 +283,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
                       key={lead.id}
                       className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
                     >
-                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">
-                        {lead.name || '-'}
-                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{lead.phone || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
                       <td className="px-6 py-4 text-sm">
                         <select
                           value={lead.status}
@@ -286,6 +298,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <input
+                          type="text"
+                          value={lead.notes || ''}
+                          onChange={(e) => handleNotesChange(lead.id, e.target.value)}
+                          placeholder="أضف ملاحظة..."
+                          className="w-full min-w-[160px] px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-400 transition-colors"
+                        />
                       </td>
                       {isAdmin && config.distribution?.enabled && (
                         <td className="px-6 py-4 text-sm">

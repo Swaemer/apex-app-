@@ -8,9 +8,9 @@ const BASE_CONFIG = {
   columns: [
     { columnIndex: 0, label: 'الاسم', field: 'name' as const },
     { columnIndex: 1, label: 'الهاتف', field: 'phone' as const },
-    { columnIndex: 2, label: 'الحالة', field: 'status' as const },
+    { columnIndex: 2, label: 'الخدمة المطلوبة', field: 'service' as const },
   ],
-  statuses: ['جديد', 'متابعة', 'مبيعة'],
+  statuses: ['جديد', 'متابعة', 'تم حجز الموعد'],
 };
 
 export const LeadsPage = () => {
