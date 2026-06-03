@@ -413,11 +413,12 @@ export const HomePage = () => {
               <p className="text-gray-600 text-sm mb-4">متابعة حالات الشحن والاستلام من المعمل</p>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
             </button>
-            <div className="bg-gray-50 rounded-2xl border border-gray-200 border-dashed p-8 text-right opacity-40">
-              <div className="w-12 h-12 bg-gray-200 rounded-xl flex items-center justify-center mb-4"><span className="text-2xl">🔒</span></div>
-              <h3 className="text-xl font-bold text-gray-700 mb-2">قادم قريباً</h3>
-              <p className="text-gray-500 text-sm">ميزات جديدة قيد الإعداد</p>
-            </div>
+            <button onClick={() => navigate('/offers')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-amber-200 transition-all text-right group">
+              <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdLocalOffer className="text-white text-xl" /></div></div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">عروض الشهر</h3>
+              <p className="text-gray-600 text-sm mb-4">عرض أسعار وخدمات الشهر</p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+            </button>
           </div>
         </div>
 
