@@ -18,7 +18,7 @@ export const getLeads = async (): Promise<Lead[]> => {
   const { data, error } = await supabase
     .from('leads')
     .select('*')
-    .order('created_at', { ascending: false });
+    .order('id', { ascending: false });
   if (error) throw error;
   return data as Lead[];
 };
