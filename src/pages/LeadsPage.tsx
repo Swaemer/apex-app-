@@ -42,6 +42,7 @@ export const LeadsPage = () => {
       config={config}
       employeeName={isAdmin ? undefined : userName}
       isAdmin={isAdmin}
+      employeesList={employees.map((e) => e.name)}
     />
   );
 };

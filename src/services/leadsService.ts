@@ -40,6 +40,11 @@ export const updateLeadNotes = async (id: number, notes: string): Promise<void> 
   if (error) throw error;
 };
 
+export const updateLeadAssignment = async (id: number, assigned_to: string): Promise<void> => {
+  const { error } = await supabase.from('leads').update({ assigned_to }).eq('id', id);
+  if (error) throw error;
+};
+
 export const deleteLead = async (id: number): Promise<void> => {
   const { error } = await supabase.from('leads').delete().eq('id', id);
   if (error) throw error;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, upsertLeads, updateLeadStatus, updateLeadNotes, deleteLead } from '../services/leadsService';
+import { getLeads, upsertLeads, updateLeadStatus, updateLeadNotes, updateLeadAssignment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -32,11 +32,12 @@ interface LeadsManagementConfig {
 
 interface LeadsManagementProps {
   config: LeadsManagementConfig;
-  employeeName?: string; // إذا موجود → موظف يشوف بس leads باسمه
+  employeeName?: string;
   isAdmin?: boolean;
+  employeesList?: string[];
 }
 
-export const LeadsManagement = ({ config, employeeName, isAdmin = false }: LeadsManagementProps) => {
+export const LeadsManagement = ({ config, employeeName, isAdmin = false, employeesList = [] }: LeadsManagementProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filter, setFilter] = useState<string>('الكل');
   const [filterUser, setFilterUser] = useState<string>('الكل');
@@ -169,6 +170,16 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
       'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
     };
     return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+  };
+
+  const handleAssignmentChange = async (id: number, assigned_to: string) => {
+    try {
+      await updateLeadAssignment(id, assigned_to);
+      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, assigned_to } : l));
+      toast.success('تم تغيير التعيين');
+    } catch {
+      toast.error('خطأ في تغيير التعيين');
+    }
   };
 
   const handleNotesChange = async (id: number, notes: string) => {
@@ -310,9 +321,22 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false }: Leads
                       </td>
                       {isAdmin && config.distribution?.enabled && (
                         <td className="px-6 py-4 text-sm">
-                          <span className="inline-block px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200">
-                            {lead.assigned_to || 'لم يتم التعيين'}
-                          </span>
+                          {employeesList.length > 0 ? (
+                            <select
+                              value={lead.assigned_to || ''}
+                              onChange={(e) => handleAssignmentChange(lead.id, e.target.value)}
+                              className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-300"
+                            >
+                              <option value="">-- اختر --</option>
+                              {employeesList.map((name) => (
+                                <option key={name} value={name}>{name}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <span className="inline-block px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200">
+                              {lead.assigned_to || 'لم يتم التعيين'}
+                            </span>
+                          )}
                         </td>
                       )}
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
