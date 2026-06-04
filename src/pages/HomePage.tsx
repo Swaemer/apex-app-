@@ -120,6 +120,14 @@ export const HomePage = () => {
     } catch { /* ignore */ }
   };
 
+  const toggleAppointmentsPermission = async (emp: Profile) => {
+    try {
+      const newVal = !emp.can_view_all_appointments;
+      await supabase.from('profiles').update({ can_view_all_appointments: newVal }).eq('id', emp.id);
+      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_view_all_appointments: newVal } : e));
+    } catch { /* ignore */ }
+  };
+
   const handleExpandAnn = async (id: number) => {
     if (expandedAnn === id) { setExpandedAnn(null); return; }
     setExpandedAnn(id);
@@ -266,7 +274,7 @@ export const HomePage = () => {
 
               {/* الصلاحيات */}
               {employees.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                   <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                     <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
                     <div className="divide-y divide-gray-100">
@@ -294,6 +302,21 @@ export const HomePage = () => {
                           <div className="text-right">
                             <p className="font-medium text-gray-900">{emp.name}</p>
                             <p className="text-xs text-gray-400">{emp.can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تقويم الحجوزات</h3>
+                    <div className="divide-y divide-gray-100">
+                      {employees.map((emp) => (
+                        <div key={emp.id} className="flex items-center justify-between py-3">
+                          <button onClick={() => toggleAppointmentsPermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_view_all_appointments ? 'bg-green-500' : 'bg-gray-200'}`}>
+                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_view_all_appointments ? '-translate-x-6' : '-translate-x-1'}`} />
+                          </button>
+                          <div className="text-right">
+                            <p className="font-medium text-gray-900">{emp.name}</p>
+                            <p className="text-xs text-gray-400">{emp.can_view_all_appointments ? 'يشوف كل الحجوزات' : 'حجوزاته فقط'}</p>
                           </div>
                         </div>
                       ))}
