@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
@@ -272,58 +272,22 @@ export const HomePage = () => {
                 </div>
               </div>
 
-              {/* الصلاحيات */}
-              {employees.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تعديل المعمل</h3>
-                    <div className="divide-y divide-gray-100">
-                      {employees.map((emp) => (
-                        <div key={emp.id} className="flex items-center justify-between py-3">
-                          <button onClick={() => toggleLabPermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_edit_lab ? 'bg-green-500' : 'bg-gray-200'}`}>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_edit_lab ? '-translate-x-6' : '-translate-x-1'}`} />
-                          </button>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-400">{emp.can_edit_lab ? 'مسموح بالتعديل' : 'عرض فقط'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+              {/* رابط صفحة الصلاحيات */}
+              <button onClick={() => navigate('/permissions')}
+                className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8 flex items-center justify-between hover:shadow-md hover:border-slate-300 transition-all text-right group">
+                <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 group-hover:gap-3 transition-all">
+                  إدارة الصلاحيات <FiArrowLeft className="w-4 h-4" />
+                </div>
+                <div className="flex items-center gap-3">
+                  <div>
+                    <p className="font-bold text-gray-900">صلاحيات الموظفين</p>
+                    <p className="text-xs text-gray-400">تحكم بصلاحيات كل موظف من مكان واحد</p>
                   </div>
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات طلبات الإجازة</h3>
-                    <div className="divide-y divide-gray-100">
-                      {employees.map((emp) => (
-                        <div key={emp.id} className="flex items-center justify-between py-3">
-                          <button onClick={() => toggleLeavePermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_submit_leave ? 'bg-green-500' : 'bg-gray-200'}`}>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_submit_leave ? '-translate-x-6' : '-translate-x-1'}`} />
-                          </button>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-400">{emp.can_submit_leave ? 'مسموح بالإجازات' : 'غير مفعّل'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                    <h3 className="text-base font-bold text-gray-900 mb-4">صلاحيات تقويم الحجوزات</h3>
-                    <div className="divide-y divide-gray-100">
-                      {employees.map((emp) => (
-                        <div key={emp.id} className="flex items-center justify-between py-3">
-                          <button onClick={() => toggleAppointmentsPermission(emp)} className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${emp.can_view_all_appointments ? 'bg-green-500' : 'bg-gray-200'}`}>
-                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${emp.can_view_all_appointments ? '-translate-x-6' : '-translate-x-1'}`} />
-                          </button>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-400">{emp.can_view_all_appointments ? 'يشوف كل الحجوزات' : 'حجوزاته فقط'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="w-10 h-10 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center">
+                    <MdAdminPanelSettings className="text-white text-xl" />
                   </div>
                 </div>
-              )}
+              </button>
 
               {/* إدارة الأطباء */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
