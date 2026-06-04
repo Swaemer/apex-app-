@@ -51,6 +51,7 @@ export const HomePage = () => {
   const [expandedAnn, setExpandedAnn] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [targetEmployees, setTargetEmployees] = useState<string[]>([]);
+  const [canViewAdmin, setCanViewAdmin] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export const HomePage = () => {
       try {
         const allLeads = await getLeads();
         if (user.isAdmin) {
+          setCanViewAdmin(true);
           setLeads(allLeads);
           const [emps, cases, docs, anns] = await Promise.all([getEmployees(), getLabCases(), getDoctors(), getAllAnnouncements()]);
           setEmployees(emps);
@@ -66,7 +68,22 @@ export const HomePage = () => {
           setDoctors(docs);
           setAnnouncements(anns);
         } else {
-          setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
+          // تحقق من صلاحية عرض الداشبورد
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('can_view_admin')
+            .eq('id', user.id)
+            .single();
+
+          if (profile?.can_view_admin) {
+            setCanViewAdmin(true);
+            setLeads(allLeads);
+            const [emps, cases] = await Promise.all([getEmployees(), getLabCases()]);
+            setEmployees(emps);
+            setLabCases(cases);
+          } else {
+            setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
+          }
         }
       } catch { /* profiles قد لا تكون جاهزة */ }
       setLoadingStats(false);
@@ -157,7 +174,7 @@ export const HomePage = () => {
   const myRate = myTotal > 0 ? Math.round((myDone / myTotal) * 100) : 0;
   const motivation = motivationalMessages(myRate);
 
-  if (isAdmin) {
+  if (canViewAdmin) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
         <div className="max-w-6xl mx-auto">
@@ -231,7 +248,7 @@ export const HomePage = () => {
               {/* تقويم الحجوزات */}
               <AppointmentsCalendar leads={leads} />
 
-              {/* إحصائيات المعمل */}
+              {/* إحصائيات المعمل — للجميع */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 mb-4">إحصائيات المعمل</h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -251,8 +268,8 @@ export const HomePage = () => {
                 </div>
               </div>
 
-              {/* رابط صفحة الصلاحيات */}
-              <button onClick={() => navigate('/permissions')}
+              {/* رابط صفحة الصلاحيات — للأدمن فقط */}
+              {isAdmin && <button onClick={() => navigate('/permissions')}
                 className="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-8 flex items-center justify-between hover:shadow-md hover:border-slate-300 transition-all text-right group">
                 <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 group-hover:gap-3 transition-all">
                   إدارة الصلاحيات <FiArrowLeft className="w-4 h-4" />
@@ -266,9 +283,10 @@ export const HomePage = () => {
                     <MdAdminPanelSettings className="text-white text-xl" />
                   </div>
                 </div>
-              </button>
+              </button>}
 
-              {/* إدارة الأطباء */}
+              {/* إدارة الأطباء — للأدمن فقط */}
+              {isAdmin && <>
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
                 <h3 className="text-base font-bold text-gray-900 mb-4">إدارة فريق الأطباء</h3>
                 <div className="flex gap-2 mb-4">
@@ -305,7 +323,10 @@ export const HomePage = () => {
             </>
           )}
 
-          {/* إدارة الإشعارات */}
+          </>}
+
+          {/* إدارة الإشعارات — للأدمن فقط */}
+          {isAdmin &&
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-8">
             <div className="flex items-center gap-2 mb-5">
               <MdCampaign className="w-5 h-5 text-red-500" />
@@ -402,7 +423,7 @@ export const HomePage = () => {
                 ))}
               </div>
             )}
-          </div>
+          </div>}
 
           {/* القائمة */}
           <div>

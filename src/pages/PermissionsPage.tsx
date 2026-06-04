@@ -20,6 +20,12 @@ interface Permission {
 
 const PERMISSIONS: Permission[] = [
   {
+    key: 'can_view_admin',
+    label: 'عرض الإدارة',
+    description: 'مشاهدة داشبورد الإدارة بدون تعديل',
+    color: 'bg-slate-600',
+  },
+  {
     key: 'can_edit_lab',
     label: 'تعديل المعمل',
     description: 'إضافة وتعديل حالات المعمل',

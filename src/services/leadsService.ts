@@ -63,12 +63,13 @@ export interface Profile {
   can_edit_lab: boolean;
   can_submit_leave: boolean;
   can_view_all_appointments: boolean;
+  can_view_admin: boolean;
 }
 
 export const getEmployees = async (): Promise<Profile[]> => {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, name, role, can_edit_lab, can_submit_leave, can_view_all_appointments')
+    .select('id, name, role, can_edit_lab, can_submit_leave, can_view_all_appointments, can_view_admin')
     .eq('role', 'employee')
     .order('name');
   if (error) throw error;
