@@ -184,18 +184,25 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     }
     setDistributing(true);
     try {
-      const updates = leads.map((lead, index) => ({
+      // بس اللي ما فيهم مسؤول
+      const unassigned = leads.filter((l) => !l.assigned_to || l.assigned_to === 'لم يتم التعيين');
+      if (unassigned.length === 0) {
+        toast('كل الـ leads عندهم مسؤول معيّن');
+        setShowDistribute(false);
+        return;
+      }
+      const updates = unassigned.map((lead, index) => ({
         id: lead.id,
         assigned_to: selectedEmployees[index % selectedEmployees.length],
       }));
       await Promise.all(updates.map(({ id, assigned_to }) => updateLeadAssignment(id, assigned_to)));
       setLeads((prev) =>
-        prev.map((lead, index) => ({
-          ...lead,
-          assigned_to: selectedEmployees[index % selectedEmployees.length],
-        }))
+        prev.map((lead) => {
+          const update = updates.find((u) => u.id === lead.id);
+          return update ? { ...lead, assigned_to: update.assigned_to } : lead;
+        })
       );
-      toast.success(`تم توزيع ${leads.length} lead على ${selectedEmployees.length} موظف`);
+      toast.success(`تم توزيع ${unassigned.length} lead على ${selectedEmployees.length} موظف`);
       setShowDistribute(false);
     } catch {
       toast.error('خطأ في التوزيع');
@@ -310,7 +317,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               >
                 إلغاء
               </button>
-              <p className="text-xs text-gray-400">سيتم توزيع {leads.length} lead بالتساوي</p>
+              <p className="text-xs text-gray-400">
+                سيتم توزيع {leads.filter((l) => !l.assigned_to || l.assigned_to === 'لم يتم التعيين').length} lead بدون مسؤول
+              </p>
             </div>
           </div>
         )}
