@@ -28,6 +28,8 @@ export const LabPage = () => {
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [cases, setCases] = useState<LabCase[]>([]);
   const [filter, setFilter] = useState('الكل');
+  const [filterDoctor, setFilterDoctor] = useState('الكل');
+  const [filterLab, setFilterLab] = useState('الكل');
   const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
@@ -116,7 +118,14 @@ export const LabPage = () => {
     } catch { toast.error('خطأ في الحذف'); }
   };
 
-  const filtered = filter === 'الكل' ? cases : cases.filter((c) => c.status === filter);
+  const filtered = cases.filter((c) => {
+    if (filter !== 'الكل' && c.status !== filter) return false;
+    if (filterDoctor !== 'الكل' && c.doctor_name !== filterDoctor) return false;
+    if (filterLab !== 'الكل' && c.lab_name !== filterLab) return false;
+    return true;
+  });
+
+  const activeDoctors = [...new Set(cases.map((c) => c.doctor_name).filter(Boolean))] as string[];
 
   const formatDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
@@ -245,21 +254,51 @@ export const LabPage = () => {
           </div>
         )}
 
-        {/* فلاتر الحالة */}
-        <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
-          {['الكل', ...STATUSES].map((s) => (
-            <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-6 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
-                filter === s
-                  ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
-                  : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-              }`}
-            >
-              {s}
-            </button>
-          ))}
+        {/* فلتر الحالة */}
+        <div className="mb-4">
+          <p className="text-xs font-medium text-gray-500 mb-2">الحالة</p>
+          <div className="flex gap-2 overflow-x-auto pb-1">
+            {['الكل', ...STATUSES].map((s) => (
+              <button key={s} onClick={() => setFilter(s)}
+                className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
+                  filter === s ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                }`}>
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* فلتر الطبيب */}
+        {activeDoctors.length > 0 && (
+          <div className="mb-4">
+            <p className="text-xs font-medium text-gray-500 mb-2">الطبيب</p>
+            <div className="flex gap-2 overflow-x-auto pb-1">
+              {['الكل', ...activeDoctors].map((d) => (
+                <button key={d} onClick={() => setFilterDoctor(d)}
+                  className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
+                    filterDoctor === d ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                  }`}>
+                  {d}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* فلتر المعمل */}
+        <div className="mb-6">
+          <p className="text-xs font-medium text-gray-500 mb-2">المعمل</p>
+          <div className="flex gap-2">
+            {['الكل', 'معمل سكاكا', 'معمل بريدة'].map((l) => (
+              <button key={l} onClick={() => setFilterLab(l)}
+                className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
+                  filterLab === l ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                }`}>
+                {l}
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* الجدول */}
