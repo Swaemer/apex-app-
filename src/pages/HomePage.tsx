@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
-import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
+import { getLeads, getEmployees } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
 import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
@@ -112,21 +112,6 @@ export const HomePage = () => {
     setEditingDoctorId(null);
   };
 
-  const toggleLeavePermission = async (emp: Profile) => {
-    try {
-      const newVal = !emp.can_submit_leave;
-      await supabase.from('profiles').update({ can_submit_leave: newVal }).eq('id', emp.id);
-      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } : e));
-    } catch { /* ignore */ }
-  };
-
-  const toggleAppointmentsPermission = async (emp: Profile) => {
-    try {
-      const newVal = !emp.can_view_all_appointments;
-      await supabase.from('profiles').update({ can_view_all_appointments: newVal }).eq('id', emp.id);
-      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_view_all_appointments: newVal } : e));
-    } catch { /* ignore */ }
-  };
 
   const handleExpandAnn = async (id: number) => {
     if (expandedAnn === id) { setExpandedAnn(null); return; }
@@ -157,12 +142,6 @@ export const HomePage = () => {
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
   };
 
-  const toggleLabPermission = async (emp: Profile) => {
-    try {
-      await updateLabPermission(emp.id, !emp.can_edit_lab);
-      setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_edit_lab: !emp.can_edit_lab } : e));
-    } catch { /* ignore */ }
-  };
 
   // إحصائيات المعمل
   const labStatuses = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
