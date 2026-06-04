@@ -421,6 +421,8 @@ export const HomePage = () => {
               </div>
             )}
           </div>}
+            </>
+          )}
 
           {/* القائمة */}
           <div>
