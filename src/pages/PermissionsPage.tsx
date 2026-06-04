@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
+import { MdCheck, MdPerson, MdHourglassEmpty } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import { getEmployees } from '../services/leadsService';
 import type { Profile } from '../services/leadsService';
+
+interface PendingUser {
+  id: string;
+  name: string;
+  email: string;
+}
 
 interface Permission {
   key: keyof Pick<Profile, 'can_edit_lab' | 'can_submit_leave' | 'can_view_all_appointments'>;
@@ -34,14 +41,38 @@ const PERMISSIONS: Permission[] = [
 
 export const PermissionsPage = () => {
   const [employees, setEmployees] = useState<Profile[]>([]);
+  const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
 
-  useEffect(() => {
-    getEmployees()
-      .then(setEmployees)
-      .finally(() => setLoading(false));
-  }, []);
+  const loadData = async () => {
+    const [emps] = await Promise.all([getEmployees()]);
+    setEmployees(emps);
+
+    // المستخدمون المنتظرون الموافقة
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, name')
+      .eq('is_approved', false);
+
+    if (data) {
+      setPendingUsers(data.map((p) => ({ id: p.id, name: p.name, email: '' })));
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { loadData(); }, []);
+
+  const approveUser = async (id: string) => {
+    try {
+      await supabase.from('profiles').update({ is_approved: true }).eq('id', id);
+      setPendingUsers((prev) => prev.filter((u) => u.id !== id));
+      toast.success('تم تفعيل الحساب');
+      loadData(); // أعد تحميل الموظفين
+    } catch {
+      toast.error('خطأ في التفعيل');
+    }
+  };
 
   const toggle = async (emp: Profile, key: Permission['key']) => {
     const savingKey = `${emp.id}-${key}`;
@@ -74,6 +105,37 @@ export const PermissionsPage = () => {
           <h1 className="text-4xl font-bold text-gray-900 mb-1">الصلاحيات</h1>
           <p className="text-gray-500">تحكم بصلاحيات كل موظف</p>
         </div>
+
+        {/* المستخدمون المنتظرون */}
+        {pendingUsers.length > 0 && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-6 mb-6">
+            <div className="flex items-center gap-2 mb-4">
+              <MdHourglassEmpty className="w-5 h-5 text-yellow-600" />
+              <h2 className="text-base font-bold text-yellow-800">حسابات تنتظر التفعيل ({pendingUsers.length})</h2>
+            </div>
+            <div className="space-y-2">
+              {pendingUsers.map((u) => (
+                <div key={u.id} className="bg-white rounded-xl border border-yellow-200 px-4 py-3 flex items-center justify-between">
+                  <button
+                    onClick={() => approveUser(u.id)}
+                    className="flex items-center gap-1.5 px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors"
+                  >
+                    <MdCheck className="w-4 h-4" /> تفعيل
+                  </button>
+                  <div className="text-right flex items-center gap-3">
+                    <div>
+                      <p className="font-medium text-gray-900">{u.name}</p>
+                      <p className="text-xs text-gray-400">بانتظار التفعيل</p>
+                    </div>
+                    <div className="w-9 h-9 bg-yellow-100 rounded-xl flex items-center justify-center">
+                      <MdPerson className="w-5 h-5 text-yellow-600" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {employees.length === 0 ? (
           <div className="bg-white rounded-2xl border border-dashed border-gray-300 p-16 text-center">

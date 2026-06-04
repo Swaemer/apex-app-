@@ -89,6 +89,21 @@ export const AuthForm = () => {
         if (error) {
           toast.error(error.message.includes('Invalid login credentials') ? 'البيانات غلط، حاول مرة ثانية' : `خطأ: ${error.message}`);
         } else {
+          // تحقق من موافقة المدير
+          const { data: { user: loggedUser } } = await supabase.auth.getUser();
+          if (loggedUser) {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_approved')
+              .eq('id', loggedUser.id)
+              .single();
+
+            if (!profile?.is_approved) {
+              await supabase.auth.signOut();
+              toast.error('حسابك قيد المراجعة — تواصل مع المدير لتفعيل حسابك');
+              return;
+            }
+          }
           toast.success('أهلاً وسهلاً!');
           setFormData({ name: '', email: '', password: '', confirmPassword: '' });
           setTimeout(() => navigate('/home'), 500);
