@@ -148,7 +148,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         if (payload.eventType === 'INSERT') {
           const newLead = payload.new as Lead;
           const show = !employeeName || newLead.assigned_to === employeeName;
-          if (show) setLeads((prev) => [newLead, ...prev]);
+          // تجنب التكرار لو loadLeads شغّال بنفس الوقت
+          if (show) setLeads((prev) =>
+            prev.some((l) => l.id === newLead.id) ? prev : [newLead, ...prev]
+          );
         } else if (payload.eventType === 'UPDATE') {
           setLeads((prev) =>
             prev.map((l) => (l.id === (payload.new as Lead).id ? (payload.new as Lead) : l))
