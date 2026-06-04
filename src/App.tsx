@@ -9,6 +9,7 @@ import { LeadsPage } from './pages/LeadsPage';
 import { LabPage } from './pages/LabPage';
 import { LeavePage } from './pages/LeavePage';
 import { OffersPage } from './pages/OffersPage';
+import { AppointmentsPage } from './pages/AppointmentsPage';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 
 function App() {
@@ -26,6 +27,7 @@ function App() {
             <Route path="/lab" element={<ProtectedRoute><LabPage /></ProtectedRoute>} />
             <Route path="/leave" element={<ProtectedRoute><LeavePage /></ProtectedRoute>} />
             <Route path="/offers" element={<ProtectedRoute><OffersPage /></ProtectedRoute>} />
+            <Route path="/appointments" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
           </Routes>
         </main>

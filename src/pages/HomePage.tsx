@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
@@ -560,6 +560,13 @@ export const HomePage = () => {
               <h3 className="text-xl font-bold text-gray-900 mb-2">عروض الشهر</h3>
               <p className="text-gray-600 text-sm mb-4">عرض أسعار وخدمات الشهر</p>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+            </button>
+
+            <button onClick={() => navigate('/appointments')} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 hover:shadow-lg hover:border-green-200 transition-all text-right group">
+              <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-green-600 to-green-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdCalendarMonth className="text-white text-xl" /></div></div>
+              <h3 className="text-xl font-bold text-gray-900 mb-2">حجوزات المرضى الجدد</h3>
+              <p className="text-gray-600 text-sm mb-4">تقويم حجوزاتك للمرضى</p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
             </button>
           </div>
         </div>
