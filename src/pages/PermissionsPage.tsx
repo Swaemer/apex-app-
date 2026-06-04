@@ -12,7 +12,7 @@ interface PendingUser {
 }
 
 interface Permission {
-  key: keyof Pick<Profile, 'can_edit_lab' | 'can_submit_leave' | 'can_view_all_appointments'>;
+  key: keyof Pick<Profile, 'can_view_admin' | 'can_edit_lab' | 'can_submit_leave' | 'can_view_all_appointments'>;
   label: string;
   description: string;
   color: string;
