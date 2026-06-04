@@ -29,7 +29,8 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
   const byDay = useMemo(() => {
     const map: Record<string, Lead[]> = {};
     appointments.forEach((l) => {
-      const day = l.appointment_at!.split('T')[0];
+      // نستخدم المنطقة الزمنية السعودية لتحديد اليوم الصحيح
+      const day = new Date(l.appointment_at!).toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' });
       if (!map[day]) map[day] = [];
       map[day].push(l);
     });
@@ -136,7 +137,7 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                     <div className="flex items-center justify-between mb-1">
                       <span className="flex items-center gap-1 text-xs text-green-600 font-bold">
                         <MdAccessTime className="w-3.5 h-3.5" />
-                        {new Date(l.appointment_at!).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true })}
+                        {new Date(l.appointment_at!).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit', hour12: true, timeZone: 'Asia/Riyadh' })}
                       </span>
                       <span className="font-bold text-gray-900 text-sm">{l.name}</span>
                     </div>

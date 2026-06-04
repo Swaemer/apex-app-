@@ -233,7 +233,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     const dt = pendingAppointment[id];
     if (!dt) { toast.error('اختر التاريخ والساعة'); return; }
     try {
-      await updateLeadAppointment(id, dt);
+      // تحويل للـ ISO مع المنطقة الزمنية المحلية
+      const isoString = new Date(dt).toISOString();
+      await updateLeadAppointment(id, isoString);
       setLeads((prev) => prev.map((l) => l.id === id ? { ...l, appointment_at: dt } : l));
       setPendingAppointment((prev) => { const n = { ...prev }; delete n[id]; return n; });
       toast.success('تم حفظ موعد الحجز');
@@ -445,7 +447,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           lead.appointment_at && !pendingAppointment[lead.id] ? (
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded-lg border border-green-200">
-                                {new Date(lead.appointment_at).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(lead.appointment_at).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' })}
                               </span>
                               <button onClick={() => setPendingAppointment((p) => ({ ...p, [lead.id]: lead.appointment_at ?? '' }))}
                                 className="text-xs text-blue-500 hover:underline">تعديل</button>
