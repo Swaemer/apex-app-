@@ -103,6 +103,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             service: lead.service || null,
             status: lead.status || 'جديد',
             notes: null,
+            appointment_at: null,
             assigned_to: shouldDistribute ? assignUser(index, total) : 'لم يتم التعيين',
           };
         })
