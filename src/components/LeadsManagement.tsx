@@ -236,7 +236,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       // نخزّن مباشرة بدون تحويل timezone عشان تطلع نفس الساعة للجميع
       const isoString = `${p.date}T${p.hour.padStart(2, '0')}:00:00Z`;
       await updateLeadAppointment(id, isoString);
-      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, appointment_at: dt } : l));
+      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, appointment_at: isoString } : l));
       setPendingAppointment((prev) => { const n = { ...prev }; delete n[id]; return n; });
       toast.success('تم حفظ موعد الحجز');
     } catch {
