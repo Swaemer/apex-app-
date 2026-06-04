@@ -13,12 +13,14 @@ import type { LabCase } from '../services/labService';
 import type { Doctor } from '../services/doctorService';
 import type { Announcement, AnnouncementRead } from '../services/announcementService';
 
-const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد'];
+const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'];
 
 const statusColors: Record<string, string> = {
   جديد:             'bg-blue-50 text-blue-700 border-blue-200',
   متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
   'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
+  'عميل بالفعل':    'bg-purple-50 text-purple-700 border-purple-200',
+  'لا يرغب':        'bg-gray-100 text-gray-500 border-gray-300',
 };
 
 const motivationalMessages = (rate: number): { text: string; emoji: string } => {

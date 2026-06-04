@@ -10,7 +10,7 @@ const BASE_CONFIG = {
     { columnIndex: 1, label: 'الهاتف', field: 'phone' as const },
     { columnIndex: 2, label: 'الخدمة المطلوبة', field: 'service' as const },
   ],
-  statuses: ['جديد', 'متابعة', 'تم حجز الموعد'],
+  statuses: ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'],
 };
 
 export const LeadsPage = () => {

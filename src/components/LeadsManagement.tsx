@@ -176,6 +176,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       جديد:             'bg-blue-50 text-blue-700 border-blue-200',
       متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
       'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
+      'عميل بالفعل':    'bg-purple-50 text-purple-700 border-purple-200',
+      'لا يرغب':        'bg-gray-100 text-gray-500 border-gray-300',
     };
     return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
@@ -185,6 +187,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       جديد:             'bg-blue-50 hover:bg-blue-100',
       متابعة:           'bg-yellow-50 hover:bg-yellow-100',
       'تم حجز الموعد':  'bg-green-50 hover:bg-green-100',
+      'عميل بالفعل':    'bg-purple-50 hover:bg-purple-100',
+      'لا يرغب':        'bg-gray-100 hover:bg-gray-200',
     };
     return colors[status] || 'bg-white hover:bg-gray-50';
   };
