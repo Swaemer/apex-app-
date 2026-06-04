@@ -139,7 +139,7 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                         <MdAccessTime className="w-3.5 h-3.5" />
                         {(() => {
                   const hour = parseInt(l.appointment_at!.split('T')[1]?.substring(0, 2) ?? '0');
-                  return hour === 0 ? '12 ص' : hour < 12 ? `${hour} ص` : hour === 12 ? '12 م' : `${hour - 12} م`;
+                  return hour === 0 ? '12:00 ص' : hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
                 })()}
                       </span>
                       <span className="font-bold text-gray-900 text-sm">{l.name}</span>

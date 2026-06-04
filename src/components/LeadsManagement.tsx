@@ -450,7 +450,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                                 {(() => {
                                 const [datePart, timePart] = lead.appointment_at.split('T');
                                 const hour = parseInt(timePart?.substring(0, 2) ?? '0');
-                                const timeLabel = hour === 0 ? '12 ص' : hour < 12 ? `${hour} ص` : hour === 12 ? '12 م' : `${hour - 12} م`;
+                                const timeLabel = hour === 0 ? '12:00 ص' : hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
                                 return `${datePart} — ${timeLabel}`;
                               })()}
                               </span>
@@ -474,12 +474,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                                 onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: { ...p[lead.id], hour: e.target.value } }))}
                                 className="px-2 py-1 border border-green-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white"
                               >
-                                <option value="">الساعة</option>
-                                {Array.from({ length: 24 }, (_, i) => (
-                                  <option key={i} value={String(i).padStart(2, '0')}>
-                                    {i === 0 ? '12 ص' : i < 12 ? `${i} ص` : i === 12 ? '12 م' : `${i - 12} م`}
-                                  </option>
-                                ))}
+                                <option value="">-- اختر الساعة --</option>
+                                {Array.from({ length: 24 }, (_, i) => {
+                                  const label = i === 0 ? '12:00 ص' : i < 12 ? `${i}:00 ص` : i === 12 ? '12:00 م' : `${i - 12}:00 م`;
+                                  return <option key={i} value={String(i).padStart(2, '0')}>{label}</option>;
+                                })}
                               </select>
                               <button onClick={() => handleSaveAppointment(lead.id)}
                                 className="px-2.5 py-1 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
