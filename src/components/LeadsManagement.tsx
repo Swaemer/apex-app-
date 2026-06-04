@@ -180,6 +180,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
+  const getRowColor = (status: string) => {
+    const colors: Record<string, string> = {
+      جديد:             'bg-blue-50 hover:bg-blue-100',
+      متابعة:           'bg-yellow-50 hover:bg-yellow-100',
+      'تم حجز الموعد':  'bg-green-50 hover:bg-green-100',
+    };
+    return colors[status] || 'bg-white hover:bg-gray-50';
+  };
+
   const handleDistribute = async () => {
     if (selectedEmployees.length === 0) {
       toast.error('اختر موظفاً واحداً على الأقل');
@@ -393,7 +402,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   filteredLeads.map((lead) => (
                     <tr
                       key={lead.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className={`border-b border-gray-100 transition-colors ${getRowColor(lead.status)}`}
                     >
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{lead.phone || '-'}</td>
