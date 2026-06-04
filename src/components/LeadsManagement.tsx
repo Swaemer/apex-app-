@@ -45,7 +45,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [importing, setImporting] = useState(false);
   const [savedNote, setSavedNote] = useState<number | null>(null);
   const [noteValues, setNoteValues] = useState<Record<number, string>>({});
-  const [pendingAppointment, setPendingAppointment] = useState<Record<number, string>>({});
+  const [pendingAppointment, setPendingAppointment] = useState<Record<number, { date: string; hour: string }>>({});
   const [showDistribute, setShowDistribute] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [distributing, setDistributing] = useState(false);
@@ -230,11 +230,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   };
 
   const handleSaveAppointment = async (id: number) => {
-    const dt = pendingAppointment[id];
-    if (!dt) { toast.error('اختر التاريخ والساعة'); return; }
+    const p = pendingAppointment[id];
+    if (!p?.date || !p?.hour) { toast.error('اختر التاريخ والساعة'); return; }
     try {
-      // تحويل للـ ISO مع المنطقة الزمنية المحلية
-      const isoString = new Date(dt).toISOString();
+      // نخزّن مباشرة بدون تحويل timezone عشان تطلع نفس الساعة للجميع
+      const isoString = `${p.date}T${p.hour.padStart(2, '0')}:00:00Z`;
       await updateLeadAppointment(id, isoString);
       setLeads((prev) => prev.map((l) => l.id === id ? { ...l, appointment_at: dt } : l));
       setPendingAppointment((prev) => { const n = { ...prev }; delete n[id]; return n; });
@@ -447,19 +447,40 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           lead.appointment_at && !pendingAppointment[lead.id] ? (
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded-lg border border-green-200">
-                                {new Date(lead.appointment_at).toLocaleString('ar-SA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Riyadh' })}
+                                {(() => {
+                                const [datePart, timePart] = lead.appointment_at.split('T');
+                                const hour = parseInt(timePart?.substring(0, 2) ?? '0');
+                                const timeLabel = hour === 0 ? '12 ص' : hour < 12 ? `${hour} ص` : hour === 12 ? '12 م' : `${hour - 12} م`;
+                                return `${datePart} — ${timeLabel}`;
+                              })()}
                               </span>
-                              <button onClick={() => setPendingAppointment((p) => ({ ...p, [lead.id]: lead.appointment_at ?? '' }))}
-                                className="text-xs text-blue-500 hover:underline">تعديل</button>
+                              <button onClick={() => {
+                            const saved = lead.appointment_at ?? '';
+                            const date = saved.split('T')[0] ?? '';
+                            const hour = saved.split('T')[1]?.substring(0, 2) ?? '';
+                            setPendingAppointment((p) => ({ ...p, [lead.id]: { date, hour } }));
+                          }} className="text-xs text-blue-500 hover:underline">تعديل</button>
                             </div>
                           ) : (
-                            <div className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5 flex-wrap">
                               <input
-                                type="datetime-local"
-                                value={pendingAppointment[lead.id] ?? ''}
-                                onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: e.target.value }))}
+                                type="date"
+                                value={pendingAppointment[lead.id]?.date ?? ''}
+                                onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: { ...p[lead.id], date: e.target.value } }))}
                                 className="px-2 py-1 border border-green-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white"
                               />
+                              <select
+                                value={pendingAppointment[lead.id]?.hour ?? ''}
+                                onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: { ...p[lead.id], hour: e.target.value } }))}
+                                className="px-2 py-1 border border-green-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white"
+                              >
+                                <option value="">الساعة</option>
+                                {Array.from({ length: 24 }, (_, i) => (
+                                  <option key={i} value={String(i).padStart(2, '0')}>
+                                    {i === 0 ? '12 ص' : i < 12 ? `${i} ص` : i === 12 ? '12 م' : `${i - 12} م`}
+                                  </option>
+                                ))}
+                              </select>
                               <button onClick={() => handleSaveAppointment(lead.id)}
                                 className="px-2.5 py-1 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
                                 حفظ
