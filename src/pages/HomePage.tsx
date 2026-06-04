@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend } from 'react-icons/md';
+import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
@@ -239,6 +240,9 @@ export const HomePage = () => {
                   </div>
                 </div>
               )}
+
+              {/* تقويم الحجوزات */}
+              <AppointmentsCalendar leads={leads} />
 
               {/* إحصائيات المعمل */}
               <div className="mb-8">
