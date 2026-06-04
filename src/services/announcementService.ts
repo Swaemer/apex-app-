@@ -46,3 +46,25 @@ export const deleteAnnouncement = async (id: number): Promise<void> => {
   const { error } = await supabase.from('announcements').delete().eq('id', id);
   if (error) throw error;
 };
+
+export interface AnnouncementRead {
+  user_name: string;
+  read_at: string;
+}
+
+export const markAsRead = async (announcement_id: number, user_name: string): Promise<void> => {
+  const { error } = await supabase
+    .from('announcement_reads')
+    .upsert({ announcement_id, user_name }, { onConflict: 'announcement_id,user_name' });
+  if (error) throw error;
+};
+
+export const getReads = async (announcement_id: number): Promise<AnnouncementRead[]> => {
+  const { data, error } = await supabase
+    .from('announcement_reads')
+    .select('user_name, read_at')
+    .eq('announcement_id', announcement_id)
+    .order('read_at');
+  if (error) throw error;
+  return data as AnnouncementRead[];
+};

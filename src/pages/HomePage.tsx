@@ -5,13 +5,13 @@ import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdChec
 import { getLeads, getEmployees, updateLabPermission } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
-import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement } from '../services/announcementService';
+import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
 import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
 import type { Doctor } from '../services/doctorService';
-import type { Announcement } from '../services/announcementService';
+import type { Announcement, AnnouncementRead } from '../services/announcementService';
 
 const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد'];
 
@@ -44,6 +44,8 @@ export const HomePage = () => {
   const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
   const [editingDoctorName, setEditingDoctorName] = useState('');
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
+  const [readsMap, setReadsMap] = useState<Record<number, AnnouncementRead[]>>({});
+  const [expandedAnn, setExpandedAnn] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
   const [targetEmployees, setTargetEmployees] = useState<string[]>([]);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -113,6 +115,15 @@ export const HomePage = () => {
       await supabase.from('profiles').update({ can_submit_leave: newVal }).eq('id', emp.id);
       setEmployees((prev) => prev.map((e) => e.id === emp.id ? { ...e, can_submit_leave: newVal } : e));
     } catch { /* ignore */ }
+  };
+
+  const handleExpandAnn = async (id: number) => {
+    if (expandedAnn === id) { setExpandedAnn(null); return; }
+    setExpandedAnn(id);
+    if (!readsMap[id]) {
+      const reads = await getReads(id);
+      setReadsMap((prev) => ({ ...prev, [id]: reads }));
+    }
   };
 
   const handleSendAnnouncement = async () => {
@@ -372,24 +383,49 @@ export const HomePage = () => {
               <div className="border-t border-gray-100 pt-4 space-y-2">
                 <p className="text-xs font-medium text-gray-500 mb-2">الإشعارات السابقة</p>
                 {announcements.map((a) => (
-                  <div key={a.id} className={`flex items-center justify-between gap-3 p-3 rounded-lg border text-sm ${a.is_active ? 'bg-red-50 border-red-200' : 'bg-gray-50 border-gray-200 opacity-60'}`}>
-                    <div className="flex-1 text-right">
-                      <p className={`font-medium ${a.is_active ? 'text-red-800' : 'text-gray-600'}`}>{a.message}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
-                        {a.target_employees?.length ? `إلى: ${a.target_employees.join('، ')}` : 'للجميع'}
-                        {' · '}{new Date(a.created_at).toLocaleDateString('ar-SA')}
-                      </p>
-                    </div>
-                    <div className="flex gap-1 flex-shrink-0">
-                      {a.is_active && (
-                        <button onClick={() => handleDeactivate(a.id)} className="px-2.5 py-1 text-xs bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors">
-                          إيقاف
+                  <div key={a.id} className={`rounded-lg border text-sm overflow-hidden ${a.is_active ? 'border-red-200' : 'border-gray-200 opacity-60'}`}>
+                    <div className={`flex items-center justify-between gap-3 p-3 ${a.is_active ? 'bg-red-50' : 'bg-gray-50'}`}>
+                      <div className="flex-1 text-right">
+                        <p className={`font-medium ${a.is_active ? 'text-red-800' : 'text-gray-600'}`}>{a.message}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          {a.target_employees?.length ? `إلى: ${a.target_employees.join('، ')}` : 'للجميع'}
+                          {' · '}{new Date(a.created_at).toLocaleDateString('ar-SA')}
+                        </p>
+                      </div>
+                      <div className="flex gap-1 flex-shrink-0">
+                        <button onClick={() => handleExpandAnn(a.id)}
+                          className="px-2.5 py-1 text-xs bg-white border border-gray-200 text-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
+                          {expandedAnn === a.id ? 'إخفاء' : 'من اطلع؟'}
                         </button>
-                      )}
-                      <button onClick={() => handleDeleteAnn(a.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
-                        <MdDelete className="w-4 h-4" />
-                      </button>
+                        {a.is_active && (
+                          <button onClick={() => handleDeactivate(a.id)} className="px-2.5 py-1 text-xs bg-gray-200 text-gray-600 rounded-lg hover:bg-gray-300 transition-colors">
+                            إيقاف
+                          </button>
+                        )}
+                        <button onClick={() => handleDeleteAnn(a.id)} className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg">
+                          <MdDelete className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
+                    {expandedAnn === a.id && (
+                      <div className="bg-white px-4 py-3 border-t border-gray-100">
+                        {readsMap[a.id]?.length ? (
+                          <div className="space-y-1.5">
+                            <p className="text-xs font-medium text-gray-500 mb-2">اطلع على الإشعار:</p>
+                            {readsMap[a.id].map((r) => (
+                              <div key={r.user_name} className="flex items-center justify-between">
+                                <span className="text-xs text-gray-400">{new Date(r.read_at).toLocaleString('ar-SA', { hour: '2-digit', minute: '2-digit', month: 'short', day: 'numeric' })}</span>
+                                <span className="text-sm font-medium text-green-700 flex items-center gap-1">
+                                  <MdCheck className="w-3.5 h-3.5" />{r.user_name}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-gray-400 text-center py-1">لم يطلع أحد بعد</p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
