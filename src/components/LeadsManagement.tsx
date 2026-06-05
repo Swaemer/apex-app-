@@ -194,11 +194,21 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     }
   };
 
+  const markDeletedInSheet = (ids: number[]) => {
+    if (config.idColumnIndex === undefined) return;
+    fetch(config.sheetsUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markDeleted: ids }),
+    }).catch(() => {});
+  };
+
   const handleDelete = async (id: number) => {
     try {
       await deleteLead(id);
       setLeads((prev) => prev.filter((l) => l.id !== id));
       toast.success('تم حذف السجل');
+      markDeletedInSheet([id]);
     } catch {
       toast.error('خطأ في حذف السجل');
     }
@@ -212,6 +222,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       setLeads((prev) => prev.filter((l) => !selectedIds.has(l.id)));
       setSelectedIds(new Set());
       toast.success(`تم حذف ${ids.length} سجل`);
+      markDeletedInSheet(ids);
     } catch {
       toast.error('خطأ في الحذف');
     }
