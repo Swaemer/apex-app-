@@ -35,6 +35,8 @@ export const LabPage = () => {
   const [pending, setPending] = useState<Record<number, Partial<LabCase>>>({});
   const [saving, setSaving] = useState<Record<number, boolean>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -107,6 +109,20 @@ export const LabPage = () => {
       toast.error('خطأ في الحفظ');
     } finally {
       setSaving((prev) => ({ ...prev, [id]: false }));
+    }
+  };
+
+  const handleDragDrop = async (newStatus: string) => {
+    if (!draggingId) return;
+    const c = cases.find((x) => x.id === draggingId);
+    if (!c || c.status === newStatus) return;
+    setCases((prev) => prev.map((x) => x.id === draggingId ? { ...x, status: newStatus } : x));
+    try {
+      await updateLabCase(draggingId, { status: newStatus });
+      toast.success('تم تغيير الحالة');
+    } catch {
+      toast.error('خطأ في تحديث الحالة');
+      load();
     }
   };
 
@@ -302,7 +318,13 @@ export const LabPage = () => {
             }[status]!;
 
             return (
-              <div key={status} className={`rounded-2xl border ${colStyle.col} overflow-hidden flex flex-col`}>
+              <div
+                key={status}
+                className={`rounded-2xl border overflow-hidden flex flex-col transition-all ${colStyle.col} ${dragOverStatus === status ? 'ring-2 ring-indigo-400 scale-[1.01]' : ''}`}
+                onDragOver={(e) => { e.preventDefault(); setDragOverStatus(status); }}
+                onDragLeave={() => setDragOverStatus(null)}
+                onDrop={() => { handleDragDrop(status); setDraggingId(null); setDragOverStatus(null); }}
+              >
                 {/* عنوان العمود */}
                 <div className={`flex items-center justify-between px-4 py-3 border-b ${colStyle.header}`}>
                   <span className={`font-bold text-sm ${colStyle.title}`}>{status}</span>
@@ -314,7 +336,17 @@ export const LabPage = () => {
                   {colCases.length === 0 ? (
                     <p className="text-center text-gray-400 text-xs pt-8">لا توجد حالات</p>
                   ) : colCases.map((c) => (
-                    <div key={c.id} className={`bg-white rounded-xl border shadow-sm p-3 transition-all ${editingId === c.id ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-100 hover:shadow-md'}`}>
+                    <div
+                      key={c.id}
+                      draggable={!!(isAdmin || canEdit) && editingId !== c.id}
+                      onDragStart={() => setDraggingId(c.id)}
+                      onDragEnd={() => { setDraggingId(null); setDragOverStatus(null); }}
+                      className={`bg-white rounded-xl border shadow-sm p-3 transition-all
+                        ${editingId === c.id ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-100 hover:shadow-md'}
+                        ${(isAdmin || canEdit) && editingId !== c.id ? 'cursor-grab active:cursor-grabbing' : ''}
+                        ${draggingId === c.id ? 'opacity-40 scale-95' : ''}
+                      `}
+                    >
 
                       {editingId === c.id ? (
                         /* وضع التعديل */
