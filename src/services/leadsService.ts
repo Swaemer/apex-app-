@@ -5,6 +5,7 @@ export interface Lead {
   name: string;
   phone: string;
   service: string | null;
+  city: string | null;
   status: string;
   assigned_to: string;
   notes: string | null;

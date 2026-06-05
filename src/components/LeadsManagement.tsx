@@ -8,7 +8,7 @@ import { supabase } from '../utils/supabase/supabase';
 interface ColumnConfig {
   columnIndex: number;
   label: string;
-  field: 'name' | 'phone' | 'status' | 'service';
+  field: 'name' | 'phone' | 'status' | 'service' | 'city';
 }
 
 interface User {
@@ -140,6 +140,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             name: lead.name || '',
             phone,
             service: lead.service || null,
+            city: lead.city || null,
             status: lead.status || 'جديد',
             notes: null,
             appointment_at: null,
@@ -632,6 +633,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الاسم</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الجوال</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الخدمة المطلوبة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المدينة</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">موعد الحجز</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الملاحظات</th>
@@ -669,6 +671,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-900" dir="ltr">{lead.phone || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700">{lead.city || '-'}</td>
                       <td className="px-6 py-4 text-sm">
                         <select
                           value={lead.status}
