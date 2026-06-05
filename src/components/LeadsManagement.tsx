@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, getAllLeadPhones, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -88,8 +88,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       const rows: string[][] = await response.json();
       const dataRows = rows.slice(1);
 
-      const existingLeads = await getLeads();
-      const existingPhones = new Set(existingLeads.map((l) => l.phone));
+      const existingPhones = await getAllLeadPhones();
 
       const sheetLeads = dataRows
         .map((cells) => {

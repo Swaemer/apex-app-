@@ -24,6 +24,15 @@ export const getLeads = async (): Promise<Lead[]> => {
   return data as Lead[];
 };
 
+export const getAllLeadPhones = async (): Promise<Set<string>> => {
+  const { data, error } = await supabase
+    .from('leads')
+    .select('phone')
+    .limit(1_000_000);
+  if (error) throw error;
+  return new Set((data as { phone: string }[]).map((r) => r.phone));
+};
+
 export const upsertLeads = async (leads: NewLead[]): Promise<void> => {
   const { error } = await supabase
     .from('leads')
