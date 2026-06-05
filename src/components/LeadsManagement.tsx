@@ -284,6 +284,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
   const handleModalSave = async () => {
     if (!selectedLead) return;
+    if (modalStatus === 'تم حجز الموعد') {
+      if (!modalDate) { toast.error('يرجى اختيار تاريخ الموعد'); return; }
+      if (!modalHour) { toast.error('يرجى اختيار وقت الموعد'); return; }
+      if (doctorsList.length > 0 && !modalDoctor) { toast.error('يرجى اختيار الطبيب'); return; }
+    }
     setModalSaving(true);
     try {
       const tasks: Promise<void>[] = [];
