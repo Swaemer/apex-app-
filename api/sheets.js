@@ -1,3 +1,44 @@
+function parseCSV(csv) {
+  const rows = [];
+  const lines = csv.split('\n');
+
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cells = [];
+    let i = 0;
+    while (i < line.length) {
+      if (line[i] === '"') {
+        let cell = '';
+        i++;
+        while (i < line.length) {
+          if (line[i] === '"' && line[i + 1] === '"') {
+            cell += '"';
+            i += 2;
+          } else if (line[i] === '"') {
+            i++;
+            break;
+          } else {
+            cell += line[i++];
+          }
+        }
+        cells.push(cell.trim());
+        if (line[i] === ',') i++;
+      } else {
+        const end = line.indexOf(',', i);
+        if (end === -1) {
+          cells.push(line.slice(i).trim());
+          break;
+        }
+        cells.push(line.slice(i, end).trim());
+        i = end + 1;
+      }
+    }
+    rows.push(cells);
+  }
+
+  return rows;
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -13,7 +54,6 @@ export default async function handler(req, res) {
     try {
       const body = JSON.stringify(req.body);
 
-      // Apps Script يعمل redirect 302 — نتابعه يدوياً عشان ما تُفقد البيانات
       let response = await fetch(WRITE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -49,10 +89,5 @@ export default async function handler(req, res) {
   const response = await fetch(SHEET_URL, { redirect: 'follow' });
   const csv = await response.text();
 
-  const rows = csv
-    .split('\n')
-    .filter((l) => l.trim())
-    .map((l) => l.split(',').map((c) => c.trim().replace(/^"|"$/g, '')));
-
-  res.json(rows);
+  res.json(parseCSV(csv));
 }
