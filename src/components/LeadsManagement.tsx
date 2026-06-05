@@ -149,6 +149,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             status: lead.status || 'جديد',
             notes: null,
             appointment_at: null,
+            doctor: null,
             assigned_to: shouldDistribute ? assignUser(index, dataRows.length) : 'لم يتم التعيين',
           },
           sheetRow: index + 2,
