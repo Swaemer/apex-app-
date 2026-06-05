@@ -730,80 +730,26 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.city || '-'}</td>
                       <td className="px-6 py-4 text-sm">
-                        <select
-                          value={lead.status}
-                          onChange={(e) => handleStatusChange(lead.id, e.target.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${getStatusBadgeColor(lead.status)}`}
-                        >
-                          {config.statuses.map((s) => (
-                            <option key={s} value={s}>
-                              {s}
-                            </option>
-                          ))}
-                        </select>
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusBadgeColor(lead.status)}`}>
+                          {lead.status}
+                        </span>
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        {lead.status === 'تم حجز الموعد' ? (
-                          lead.appointment_at && !pendingAppointment[lead.id] ? (
-                            <div className="flex items-center gap-2">
-                              <span className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded-lg border border-green-200">
-                                {(() => {
-                                const [datePart, timePart] = lead.appointment_at.split('T');
-                                const hour = parseInt(timePart?.substring(0, 2) ?? '0');
-                                const timeLabel = hour === 0 ? '12:00 ص' : hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
-                                return `${datePart} — ${timeLabel}`;
-                              })()}
-                              </span>
-                              <button onClick={() => {
-                            const saved = lead.appointment_at ?? '';
-                            const date = saved.split('T')[0] ?? '';
-                            const hour = saved.split('T')[1]?.substring(0, 2) ?? '';
-                            setPendingAppointment((p) => ({ ...p, [lead.id]: { date, hour } }));
-                          }} className="text-xs text-blue-500 hover:underline">تعديل</button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center gap-1.5 flex-wrap">
-                              <input
-                                type="date"
-                                value={pendingAppointment[lead.id]?.date ?? ''}
-                                onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: { ...p[lead.id], date: e.target.value } }))}
-                                className="px-2 py-1 border border-green-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white"
-                              />
-                              <select
-                                value={pendingAppointment[lead.id]?.hour ?? ''}
-                                onChange={(e) => setPendingAppointment((p) => ({ ...p, [lead.id]: { ...p[lead.id], hour: e.target.value } }))}
-                                className="px-2 py-1 border border-green-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white"
-                              >
-                                <option value="">-- اختر الساعة --</option>
-                                {Array.from({ length: 24 }, (_, i) => {
-                                  const label = i === 0 ? '12:00 ص' : i < 12 ? `${i}:00 ص` : i === 12 ? '12:00 م' : `${i - 12}:00 م`;
-                                  return <option key={i} value={String(i).padStart(2, '0')}>{label}</option>;
-                                })}
-                              </select>
-                              <button onClick={() => handleSaveAppointment(lead.id)}
-                                className="px-2.5 py-1 bg-green-600 text-white rounded-lg text-xs font-medium hover:bg-green-700 transition-colors">
-                                حفظ
-                              </button>
-                            </div>
-                          )
+                        {lead.status === 'تم حجز الموعد' && lead.appointment_at ? (
+                          <span className="text-xs text-green-700 font-medium bg-green-50 px-2 py-1 rounded-lg border border-green-200 whitespace-nowrap">
+                            {(() => {
+                              const [datePart, timePart] = lead.appointment_at.split('T');
+                              const hour = parseInt(timePart?.substring(0, 2) ?? '0');
+                              const timeLabel = hour === 0 ? '12:00 ص' : hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
+                              return `${datePart} — ${timeLabel}`;
+                            })()}
+                          </span>
                         ) : (
                           <span className="text-gray-300 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="relative">
-                          <input
-                            type="text"
-                            value={noteValues[lead.id] ?? lead.notes ?? ''}
-                            onChange={(e) => setNoteValues((prev) => ({ ...prev, [lead.id]: e.target.value }))}
-                            onBlur={() => handleNoteBlur(lead.id)}
-                            placeholder="أضف ملاحظة..."
-                            className="w-full min-w-[160px] px-3 py-1.5 border border-gray-200 rounded-lg text-xs text-gray-700 bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-400 transition-colors"
-                          />
-                          {savedNote === lead.id && (
-                            <span className="absolute left-2 top-1/2 -translate-y-1/2 text-green-600 text-xs font-medium">✓ محفوظ</span>
-                          )}
-                        </div>
+                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px] truncate">
+                        {lead.notes || <span className="text-gray-300">—</span>}
                       </td>
                       {isAdmin && config.distribution?.enabled && (
                         <td className="px-6 py-4 text-sm">
