@@ -116,9 +116,15 @@ export const LabPage = () => {
     if (!draggingId) return;
     const c = cases.find((x) => x.id === draggingId);
     if (!c || c.status === newStatus) return;
-    setCases((prev) => prev.map((x) => x.id === draggingId ? { ...x, status: newStatus } : x));
+
+    const today = new Date().toISOString().split('T')[0];
+    const update: Partial<LabCase> = { status: newStatus };
+    if (newStatus === 'تم الاستلام') update.received_date = today;
+    else if (newStatus === 'أعيد للمعمل') update.return_date = today;
+
+    setCases((prev) => prev.map((x) => x.id === draggingId ? { ...x, ...update } : x));
     try {
-      await updateLabCase(draggingId, { status: newStatus });
+      await updateLabCase(draggingId, update);
       toast.success('تم تغيير الحالة');
     } catch {
       toast.error('خطأ في تحديث الحالة');
