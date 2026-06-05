@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, getLeadPhoneIdMap, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, getLeadPhoneIdMap, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, updateLeadDoctor, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -36,9 +36,10 @@ interface LeadsManagementProps {
   employeeName?: string;
   isAdmin?: boolean;
   employeesList?: string[];
+  doctorsList?: string[];
 }
 
-export const LeadsManagement = ({ config, employeeName, isAdmin = false, employeesList = [] }: LeadsManagementProps) => {
+export const LeadsManagement = ({ config, employeeName, isAdmin = false, employeesList = [], doctorsList = [] }: LeadsManagementProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filter, setFilter] = useState<string>('الكل');
   const [filterUser, setFilterUser] = useState<string>('الكل');
@@ -57,6 +58,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [modalNotes, setModalNotes] = useState('');
   const [modalDate, setModalDate] = useState('');
   const [modalHour, setModalHour] = useState('');
+  const [modalDoctor, setModalDoctor] = useState('');
   const [modalSaving, setModalSaving] = useState(false);
   const PAGE_SIZE = 250;
 
@@ -273,6 +275,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     setSelectedLead(lead);
     setModalStatus(lead.status);
     setModalNotes(lead.notes ?? '');
+    setModalDoctor(lead.doctor ?? '');
     const [d, h] = lead.appointment_at ? lead.appointment_at.split('T') : ['', ''];
     setModalDate(d ?? '');
     setModalHour(h?.substring(0, 2) ?? '');
@@ -295,11 +298,14 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         tasks.push(updateLeadAppointment(selectedLead.id, null));
       }
 
+      const newDoctor = modalStatus === 'تم حجز الموعد' ? (modalDoctor || null) : null;
+      if (newDoctor !== selectedLead.doctor) tasks.push(updateLeadDoctor(selectedLead.id, newDoctor));
+
       await Promise.all(tasks);
       setLeads((prev) =>
         prev.map((l) =>
           l.id === selectedLead.id
-            ? { ...l, status: modalStatus, notes: modalNotes || null, appointment_at: newAppointmentAt }
+            ? { ...l, status: modalStatus, notes: modalNotes || null, appointment_at: newAppointmentAt, doctor: newDoctor }
             : l
         )
       );
@@ -892,6 +898,12 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   <p className="text-sm font-semibold text-purple-800">{selectedLead.assigned_to}</p>
                 </div>
               )}
+              {selectedLead.doctor && (
+                <div className="bg-cyan-50 rounded-xl p-3">
+                  <p className="text-xs text-cyan-400 mb-1">الطبيب</p>
+                  <p className="text-sm font-semibold text-cyan-800">{selectedLead.doctor}</p>
+                </div>
+              )}
               <div className="bg-gray-50 rounded-xl p-3">
                 <p className="text-xs text-gray-400 mb-1">تاريخ الإضافة</p>
                 <p className="text-sm font-semibold text-gray-700">
@@ -924,32 +936,49 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
             {/* Appointment — only when status matches */}
             {modalStatus === 'تم حجز الموعد' && (
-              <div className="mb-5">
-                <label className="block text-sm font-bold text-gray-700 mb-2">موعد الحجز</label>
-                <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={modalDate}
-                    onChange={(e) => setModalDate(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
-                  />
-                  <select
-                    value={modalHour}
-                    onChange={(e) => setModalHour(e.target.value)}
-                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
-                  >
-                    <option value="">-- الساعة --</option>
-                    {Array.from({ length: 14 }, (_, i) => {
-                      const hour = i + 9;
-                      const label = hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
-                      return (
-                        <option key={hour} value={String(hour).padStart(2, '0')}>
-                          {label}
-                        </option>
-                      );
-                    })}
-                  </select>
+              <div className="mb-5 space-y-3">
+                <div>
+                  <label className="block text-sm font-bold text-gray-700 mb-2">موعد الحجز</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={modalDate}
+                      onChange={(e) => setModalDate(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                    />
+                    <select
+                      value={modalHour}
+                      onChange={(e) => setModalHour(e.target.value)}
+                      className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                    >
+                      <option value="">-- الساعة --</option>
+                      {Array.from({ length: 14 }, (_, i) => {
+                        const hour = i + 9;
+                        const label = hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
+                        return (
+                          <option key={hour} value={String(hour).padStart(2, '0')}>
+                            {label}
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
                 </div>
+                {doctorsList.length > 0 && (
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 mb-2">الطبيب</label>
+                    <select
+                      value={modalDoctor}
+                      onChange={(e) => setModalDoctor(e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 bg-white"
+                    >
+                      <option value="">-- اختر الطبيب --</option>
+                      {doctorsList.map((doc) => (
+                        <option key={doc} value={doc}>{doc}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
             )}
 

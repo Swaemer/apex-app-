@@ -10,6 +10,7 @@ export interface Lead {
   assigned_to: string;
   notes: string | null;
   appointment_at: string | null;
+  doctor: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -96,6 +97,11 @@ export const updateLeadAppointment = async (id: number, appointment_at: string |
   if (error) throw error;
 };
 
+export const updateLeadDoctor = async (id: number, doctor: string | null): Promise<void> => {
+  const { error } = await supabase.from('leads').update({ doctor }).eq('id', id);
+  if (error) throw error;
+};
+
 export const updateLeadAssignment = async (id: number, assigned_to: string): Promise<void> => {
   const { error } = await supabase.from('leads').update({ assigned_to }).eq('id', id);
   if (error) throw error;
@@ -124,6 +130,16 @@ export const getEmployees = async (): Promise<Profile[]> => {
     .order('name');
   if (error) throw error;
   return data as Profile[];
+};
+
+export const getDoctors = async (): Promise<{ name: string }[]> => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('name')
+    .eq('role', 'doctor')
+    .order('name');
+  if (error) throw error;
+  return (data ?? []) as { name: string }[];
 };
 
 export const updateLabPermission = async (id: string, can_edit_lab: boolean): Promise<void> => {

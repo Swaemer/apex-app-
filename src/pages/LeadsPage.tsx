@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getEmployees } from '../services/leadsService';
+import { getEmployees, getDoctors } from '../services/leadsService';
 import { useAuth } from '../context/AuthContext';
 import { LeadsManagement } from '../components/LeadsManagement';
 
@@ -20,10 +20,14 @@ export const LeadsPage = () => {
   const isAdmin = user?.isAdmin ?? false;
   const userName = user?.name ?? '';
   const [employees, setEmployees] = useState<{ id: number; name: string }[]>([]);
+  const [doctors, setDoctors] = useState<string[]>([]);
 
   useEffect(() => {
     getEmployees()
       .then((profiles) => setEmployees(profiles.map((p, i) => ({ id: i + 1, name: p.name }))))
+      .catch(() => {});
+    getDoctors()
+      .then((docs) => setDoctors(docs.map((d) => d.name)))
       .catch(() => {});
   }, []);
 
@@ -45,6 +49,7 @@ export const LeadsPage = () => {
       employeeName={isAdmin ? undefined : userName}
       isAdmin={isAdmin}
       employeesList={employees.map((e) => e.name)}
+      doctorsList={doctors}
     />
   );
 };
