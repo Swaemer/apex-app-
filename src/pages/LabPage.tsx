@@ -27,7 +27,6 @@ export const LabPage = () => {
 
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [cases, setCases] = useState<LabCase[]>([]);
-  const [filter, setFilter] = useState('الكل');
   const [filterDoctor, setFilterDoctor] = useState('الكل');
   const [filterLab, setFilterLab] = useState('الكل');
   const [loading, setLoading] = useState(false);
@@ -119,7 +118,6 @@ export const LabPage = () => {
   };
 
   const filtered = cases.filter((c) => {
-    if (filter !== 'الكل' && c.status !== filter) return false;
     if (filterDoctor !== 'الكل' && c.doctor_name !== filterDoctor) return false;
     if (filterLab !== 'الكل' && c.lab_name !== filterLab) return false;
     return true;
