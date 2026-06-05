@@ -55,6 +55,12 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [selectedDistEmployees, setSelectedDistEmployees] = useState<string[]>([]);
   const [distributingSelected, setDistributingSelected] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [modalStatus, setModalStatus] = useState('');
+  const [modalNotes, setModalNotes] = useState('');
+  const [modalDate, setModalDate] = useState('');
+  const [modalHour, setModalHour] = useState('');
+  const [modalSaving, setModalSaving] = useState(false);
   const PAGE_SIZE = 250;
 
   const assignUser = (index: number, total: number): string => {
@@ -273,6 +279,50 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       toast.error('خطأ في التوزيع');
     } finally {
       setDistributingSelected(false);
+    }
+  };
+
+  const openLeadModal = (lead: Lead) => {
+    setSelectedLead(lead);
+    setModalStatus(lead.status);
+    setModalNotes(lead.notes ?? '');
+    const [d, h] = lead.appointment_at ? lead.appointment_at.split('T') : ['', ''];
+    setModalDate(d ?? '');
+    setModalHour(h?.substring(0, 2) ?? '');
+  };
+
+  const handleModalSave = async () => {
+    if (!selectedLead) return;
+    setModalSaving(true);
+    try {
+      const tasks: Promise<void>[] = [];
+      if (modalStatus !== selectedLead.status) tasks.push(updateLeadStatus(selectedLead.id, modalStatus));
+      if (modalNotes !== (selectedLead.notes ?? '')) tasks.push(updateLeadNotes(selectedLead.id, modalNotes));
+
+      let newAppointmentAt = selectedLead.appointment_at;
+      if (modalStatus === 'تم حجز الموعد' && modalDate && modalHour) {
+        newAppointmentAt = `${modalDate}T${modalHour}:00:00`;
+        tasks.push(updateLeadAppointment(selectedLead.id, newAppointmentAt));
+      } else if (modalStatus !== 'تم حجز الموعد' && selectedLead.appointment_at) {
+        newAppointmentAt = null;
+        tasks.push(updateLeadAppointment(selectedLead.id, null));
+      }
+
+      await Promise.all(tasks);
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === selectedLead.id
+            ? { ...l, status: modalStatus, notes: modalNotes || null, appointment_at: newAppointmentAt }
+            : l
+        )
+      );
+      setNoteValues((prev) => ({ ...prev, [selectedLead.id]: modalNotes }));
+      toast.success('تم حفظ التغييرات');
+      setSelectedLead(null);
+    } catch (err: unknown) {
+      toast.error(`فشل الحفظ: ${err instanceof Error ? err.message : 'خطأ'}`);
+    } finally {
+      setModalSaving(false);
     }
   };
 
@@ -668,7 +718,14 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           />
                         </td>
                       )}
-                      <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
+                      <td className="px-6 py-4 text-sm font-medium">
+                        <button
+                          onClick={() => openLeadModal(lead)}
+                          className="text-gray-900 hover:text-blue-600 hover:underline text-right transition-colors"
+                        >
+                          {lead.name || '-'}
+                        </button>
+                      </td>
                       <td className="px-6 py-4 text-sm text-gray-900" dir="ltr">{lead.phone || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.city || '-'}</td>
@@ -859,6 +916,143 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             </div>
           )}
       </div>
+
+      {/* Lead Detail Modal */}
+      {selectedLead && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setSelectedLead(null)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 text-right overflow-y-auto max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="flex items-start justify-between mb-5">
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none mt-1"
+              >
+                ✕
+              </button>
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">{selectedLead.name}</h2>
+                <p className="text-sm text-blue-600 mt-1 font-medium" dir="ltr">{selectedLead.phone}</p>
+              </div>
+            </div>
+
+            {/* Info chips */}
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {selectedLead.service && (
+                <div className="bg-blue-50 rounded-xl p-3">
+                  <p className="text-xs text-blue-400 mb-1">الخدمة</p>
+                  <p className="text-sm font-semibold text-blue-800">{selectedLead.service}</p>
+                </div>
+              )}
+              {selectedLead.city && (
+                <div className="bg-green-50 rounded-xl p-3">
+                  <p className="text-xs text-green-400 mb-1">المدينة</p>
+                  <p className="text-sm font-semibold text-green-800">{selectedLead.city}</p>
+                </div>
+              )}
+              {selectedLead.assigned_to && (
+                <div className="bg-purple-50 rounded-xl p-3">
+                  <p className="text-xs text-purple-400 mb-1">مسؤول</p>
+                  <p className="text-sm font-semibold text-purple-800">{selectedLead.assigned_to}</p>
+                </div>
+              )}
+              <div className="bg-gray-50 rounded-xl p-3">
+                <p className="text-xs text-gray-400 mb-1">تاريخ الإضافة</p>
+                <p className="text-sm font-semibold text-gray-700">
+                  {new Date(selectedLead.created_at).toLocaleDateString('ar-SA', {
+                    year: 'numeric', month: 'short', day: 'numeric',
+                  })}
+                </p>
+              </div>
+            </div>
+
+            {/* Status buttons */}
+            <div className="mb-5">
+              <label className="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+              <div className="flex flex-wrap gap-2">
+                {config.statuses.map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setModalStatus(s)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                      modalStatus === s
+                        ? getStatusBadgeColor(s) + ' ring-2 ring-offset-1 ring-blue-300'
+                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Appointment — only when status matches */}
+            {modalStatus === 'تم حجز الموعد' && (
+              <div className="mb-5">
+                <label className="block text-sm font-bold text-gray-700 mb-2">موعد الحجز</label>
+                <div className="flex gap-2">
+                  <input
+                    type="date"
+                    value={modalDate}
+                    onChange={(e) => setModalDate(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                  />
+                  <select
+                    value={modalHour}
+                    onChange={(e) => setModalHour(e.target.value)}
+                    className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                  >
+                    <option value="">-- الساعة --</option>
+                    {Array.from({ length: 24 }, (_, i) => {
+                      const label =
+                        i === 0 ? '12:00 ص' : i < 12 ? `${i}:00 ص` : i === 12 ? '12:00 م' : `${i - 12}:00 م`;
+                      return (
+                        <option key={i} value={String(i).padStart(2, '0')}>
+                          {label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div className="mb-6">
+              <label className="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
+              <textarea
+                value={modalNotes}
+                onChange={(e) => setModalNotes(e.target.value)}
+                placeholder="أضف ملاحظة..."
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:border-blue-400 resize-none"
+              />
+            </div>
+
+            {/* Action buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
+                إلغاء
+              </button>
+              <button
+                onClick={handleModalSave}
+                disabled={modalSaving}
+                className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-60 transition-colors"
+              >
+                {modalSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
