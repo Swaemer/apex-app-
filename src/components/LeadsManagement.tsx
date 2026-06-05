@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, insertLeads, deleteLeadsByPhones, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -49,6 +49,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [showDistribute, setShowDistribute] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [distributing, setDistributing] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
@@ -151,6 +152,35 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       toast.success('تم حذف السجل');
     } catch {
       toast.error('خطأ في حذف السجل');
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    try {
+      const ids = Array.from(selectedIds);
+      await deleteLeadsByIds(ids);
+      setLeads((prev) => prev.filter((l) => !selectedIds.has(l.id)));
+      setSelectedIds(new Set());
+      toast.success(`تم حذف ${ids.length} سجل`);
+    } catch {
+      toast.error('خطأ في الحذف');
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (filteredLeads.every((l) => selectedIds.has(l.id))) {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        filteredLeads.forEach((l) => next.delete(l.id));
+        return next;
+      });
+    } else {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        filteredLeads.forEach((l) => next.add(l.id));
+        return next;
+      });
     }
   };
 
@@ -294,6 +324,14 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             <p className="text-gray-600">عدد العملاء: {filteredLeads.length}</p>
           </div>
           <div className="flex gap-3">
+            {isAdmin && selectedIds.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              >
+                حذف المحدد ({selectedIds.size})
+              </button>
+            )}
             {isAdmin && (
               <>
                 <button
@@ -418,6 +456,16 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
+                  {isAdmin && (
+                    <th className="px-4 py-4 text-center">
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 accent-red-600 cursor-pointer"
+                        checked={filteredLeads.length > 0 && filteredLeads.every((l) => selectedIds.has(l.id))}
+                        onChange={toggleSelectAll}
+                      />
+                    </th>
+                  )}
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الاسم</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الجوال</th>
                   <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الخدمة المطلوبة</th>
@@ -439,6 +487,22 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       key={lead.id}
                       className={`border-b border-gray-100 transition-colors ${getRowColor(lead.status)}`}
                     >
+                      {isAdmin && (
+                        <td className="px-4 py-4 text-center">
+                          <input
+                            type="checkbox"
+                            className="w-4 h-4 accent-red-600 cursor-pointer"
+                            checked={selectedIds.has(lead.id)}
+                            onChange={(e) =>
+                              setSelectedIds((prev) => {
+                                const next = new Set(prev);
+                                e.target.checked ? next.add(lead.id) : next.delete(lead.id);
+                                return next;
+                              })
+                            }
+                          />
+                        </td>
+                      )}
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-900">{lead.phone || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>

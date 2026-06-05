@@ -32,12 +32,19 @@ export const upsertLeads = async (leads: NewLead[]): Promise<void> => {
 };
 
 export const insertLeads = async (leads: NewLead[]): Promise<void> => {
-  const { error } = await supabase.from('leads').insert(leads);
+  const { error } = await supabase
+    .from('leads')
+    .upsert(leads, { onConflict: 'phone', ignoreDuplicates: true });
   if (error) throw error;
 };
 
 export const deleteLeadsByPhones = async (phones: string[]): Promise<void> => {
   const { error } = await supabase.from('leads').delete().in('phone', phones);
+  if (error) throw error;
+};
+
+export const deleteLeadsByIds = async (ids: number[]): Promise<void> => {
+  const { error } = await supabase.from('leads').delete().in('id', ids);
   if (error) throw error;
 };
 
