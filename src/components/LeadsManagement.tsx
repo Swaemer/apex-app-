@@ -28,6 +28,7 @@ interface LeadsManagementConfig {
   columns: ColumnConfig[];
   statuses: string[];
   distribution?: DistributionConfig;
+  idColumnIndex?: number; // عمود الشيت (0-based) اللي نكتب فيه Supabase ID
 }
 
 interface LeadsManagementProps {
@@ -90,47 +91,79 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
       const existingPhones = await getAllLeadPhones();
 
-      const sheetLeads = dataRows
-        .map((cells) => {
-          const lead: Partial<NewLead> = {};
-          config.columns.forEach((col) => {
-            lead[col.field] = (cells[col.columnIndex] ?? '').toString().trim();
-          });
-          return lead;
-        })
-        .filter((lead) => lead.name || lead.phone);
-
       const seenPhones = new Set<string>();
-      const toAdd: NewLead[] = [];
+      const toAdd: Array<{ lead: NewLead; sheetRow: number }> = [];
       let skipped = 0;
 
-      sheetLeads.forEach((lead, index) => {
+      dataRows.forEach((cells, index) => {
+        // إذا في ID بالشيت = استُورد سابقاً
+        if (config.idColumnIndex !== undefined) {
+          const existingId = (cells[config.idColumnIndex] ?? '').toString().trim();
+          if (existingId) { skipped++; return; }
+        }
+
+        const lead: Partial<NewLead> = {};
+        config.columns.forEach((col) => {
+          lead[col.field] = (cells[col.columnIndex] ?? '').toString().trim();
+        });
+
+        if (!lead.name && !lead.phone) return;
+
         const phone = lead.phone || '';
         if (seenPhones.has(phone) || existingPhones.has(phone)) {
           skipped++;
           return;
         }
         seenPhones.add(phone);
+
         const shouldDistribute =
           !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
         toAdd.push({
-          name: lead.name || '',
-          phone,
-          service: lead.service || null,
-          status: lead.status || 'جديد',
-          notes: null,
-          appointment_at: null,
-          assigned_to: shouldDistribute ? assignUser(index, sheetLeads.length) : 'لم يتم التعيين',
+          lead: {
+            name: lead.name || '',
+            phone,
+            service: lead.service || null,
+            status: lead.status || 'جديد',
+            notes: null,
+            appointment_at: null,
+            assigned_to: shouldDistribute ? assignUser(index, dataRows.length) : 'لم يتم التعيين',
+          },
+          sheetRow: index + 2, // 1-based, +1 for header
         });
       });
 
-      if (toAdd.length > 0) await insertLeads(toAdd);
+      const inserted = await insertLeads(toAdd.map((t) => t.lead));
+
+      // اكتب الـ IDs رجع للشيت
+      if (config.idColumnIndex !== undefined && inserted.length > 0) {
+        const phoneToRow = new Map(toAdd.map((t) => [t.lead.phone, t.sheetRow]));
+        const updates = inserted
+          .filter((l) => phoneToRow.has(l.phone))
+          .map((l) => ({
+            row: phoneToRow.get(l.phone)!,
+            col: config.idColumnIndex! + 1, // Apps Script 1-based
+            value: String(l.id),
+          }));
+
+        if (updates.length > 0) {
+          try {
+            await fetch(config.sheetsUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ updates }),
+            });
+          } catch {
+            console.warn('تعذّر كتابة الـ IDs للشيت');
+          }
+        }
+      }
+
       await loadLeads();
 
-      if (toAdd.length === 0) {
+      if (inserted.length === 0) {
         toast('لا توجد سجلات جديدة — كل البيانات موجودة بالفعل');
       } else {
-        toast.success(`تمت إضافة ${toAdd.length} جديد${skipped > 0 ? ` · تم تجاهل ${skipped} موجود` : ''}`);
+        toast.success(`تمت إضافة ${inserted.length} جديد${skipped > 0 ? ` · تم تجاهل ${skipped} موجود` : ''}`);
       }
     } catch (error) {
       const msg =

@@ -41,11 +41,14 @@ export const upsertLeads = async (leads: NewLead[]): Promise<void> => {
   if (error) throw error;
 };
 
-export const insertLeads = async (leads: NewLead[]): Promise<void> => {
-  const { error } = await supabase
+export const insertLeads = async (leads: NewLead[]): Promise<Lead[]> => {
+  if (leads.length === 0) return [];
+  const { data, error } = await supabase
     .from('leads')
-    .upsert(leads, { onConflict: 'phone', ignoreDuplicates: true });
+    .upsert(leads, { onConflict: 'phone', ignoreDuplicates: true })
+    .select();
   if (error) throw error;
+  return (data as Lead[]) ?? [];
 };
 
 export const deleteLeadsByPhones = async (phones: string[]): Promise<void> => {

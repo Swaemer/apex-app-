@@ -11,6 +11,7 @@ const BASE_CONFIG = {
     { columnIndex: 2, label: 'الخدمة المطلوبة', field: 'service' as const },
   ],
   statuses: ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'],
+  idColumnIndex: 3, // عمود D في الشيت (0-based) — أضف عمود "ID" في الشيت بنفس الموضع
 };
 
 export const LeadsPage = () => {
