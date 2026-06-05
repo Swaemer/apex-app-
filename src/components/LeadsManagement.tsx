@@ -51,6 +51,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [distributing, setDistributing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [showDistributeSelected, setShowDistributeSelected] = useState(false);
+  const [selectedDistEmployees, setSelectedDistEmployees] = useState<string[]>([]);
+  const [distributingSelected, setDistributingSelected] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 250;
 
@@ -211,6 +214,32 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       toast.success(`تم حذف ${ids.length} سجل`);
     } catch {
       toast.error('خطأ في الحذف');
+    }
+  };
+
+  const handleDistributeSelected = async () => {
+    if (selectedIds.size === 0 || selectedDistEmployees.length === 0) return;
+    setDistributingSelected(true);
+    try {
+      const ids = Array.from(selectedIds);
+      const updates = ids.map((id, i) => ({
+        id,
+        assigned_to: selectedDistEmployees[i % selectedDistEmployees.length],
+      }));
+      await Promise.all(updates.map(({ id, assigned_to }) => updateLeadAssignment(id, assigned_to)));
+      setLeads((prev) =>
+        prev.map((l) => {
+          const u = updates.find((u) => u.id === l.id);
+          return u ? { ...l, assigned_to: u.assigned_to } : l;
+        })
+      );
+      setSelectedIds(new Set());
+      setShowDistributeSelected(false);
+      toast.success(`تم توزيع ${ids.length} lead على ${selectedDistEmployees.length} موظف`);
+    } catch {
+      toast.error('خطأ في التوزيع');
+    } finally {
+      setDistributingSelected(false);
     }
   };
 
@@ -375,12 +404,23 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           </div>
           <div className="flex gap-3">
             {isAdmin && selectedIds.size > 0 && (
-              <button
-                onClick={handleBulkDelete}
-                className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
-              >
-                حذف المحدد ({selectedIds.size})
-              </button>
+              <>
+                <button
+                  onClick={() => {
+                    setSelectedDistEmployees([...employeesList]);
+                    setShowDistributeSelected(true);
+                  }}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+                >
+                  توزيع المحدد ({selectedIds.size})
+                </button>
+                <button
+                  onClick={handleBulkDelete}
+                  className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+                >
+                  حذف المحدد ({selectedIds.size})
+                </button>
+              </>
             )}
             {isAdmin && (
               <>
@@ -458,6 +498,46 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           </div>
         )}
 
+
+        {/* لوحة توزيع المحدد */}
+        {showDistributeSelected && selectedIds.size > 0 && (
+          <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-1">توزيع {selectedIds.size} lead محدد</h2>
+            <p className="text-sm text-gray-500 mb-4">اختر الموظفين اللي تبي توزّع عليهم</p>
+            <div className="flex flex-wrap gap-3 mb-5">
+              {employeesList.map((name) => (
+                <label key={name} className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={selectedDistEmployees.includes(name)}
+                    onChange={(e) =>
+                      setSelectedDistEmployees((prev) =>
+                        e.target.checked ? [...prev, name] : prev.filter((n) => n !== name)
+                      )
+                    }
+                    className="w-4 h-4 accent-purple-600"
+                  />
+                  <span className="text-sm font-medium text-gray-800">{name}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDistributeSelected}
+                disabled={distributingSelected || selectedDistEmployees.length === 0}
+                className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50"
+              >
+                {distributingSelected ? 'جاري التوزيع...' : `وزّع على ${selectedDistEmployees.length} موظف`}
+              </button>
+              <button
+                onClick={() => setShowDistributeSelected(false)}
+                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+              >
+                إلغاء
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Status Filters */}
         <div className="mb-6">
