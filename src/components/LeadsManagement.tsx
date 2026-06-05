@@ -680,8 +680,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   {isAdmin && config.distribution?.enabled && (
                     <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المسؤول</th>
                   )}
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الإضافة</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">آخر تحديث</th>
                   <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">الإجراءات</th>
                 </tr>
               </thead>
@@ -762,14 +760,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           )}
                         </td>
                       )}
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                        {new Date(lead.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap">
-                        {lead.updated_at
-                          ? new Date(lead.updated_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })
-                          : '—'}
-                      </td>
                       <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                         {isAdmin && (
                           <button
@@ -918,6 +908,16 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   })}
                 </p>
               </div>
+              {selectedLead.updated_at && (
+                <div className="bg-gray-50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 mb-1">آخر تحديث</p>
+                  <p className="text-sm font-semibold text-gray-700">
+                    {new Date(selectedLead.updated_at).toLocaleDateString('ar-SA', {
+                      year: 'numeric', month: 'short', day: 'numeric',
+                    })}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Status buttons */}
