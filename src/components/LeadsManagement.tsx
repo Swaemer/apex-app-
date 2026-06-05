@@ -108,7 +108,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         const lead: Partial<NewLead> = {};
         config.columns.forEach((col) => {
-          lead[col.field] = (cells[col.columnIndex] ?? '').toString().trim();
+          let val = (cells[col.columnIndex] ?? '').toString().trim();
+          // استخرج المفتاح الأول اللي قيمته true من صيغة {key:true}
+          if (val.startsWith('{')) {
+            const match = val.match(/\{([^:}]+):true\}/);
+            val = match ? match[1].trim() : '';
+          }
+          lead[col.field] = val;
         });
 
         if (!lead.name && !lead.phone) return;
