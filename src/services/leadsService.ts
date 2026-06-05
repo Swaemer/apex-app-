@@ -16,13 +16,25 @@ export interface Lead {
 export type NewLead = Omit<Lead, 'id' | 'created_at' | 'updated_at'>;
 
 export const getLeads = async (): Promise<Lead[]> => {
-  const { data, error } = await supabase
-    .from('leads')
-    .select('*')
-    .order('id', { ascending: false })
-    .limit(1_000_000);
-  if (error) throw error;
-  return data as Lead[];
+  const all: Lead[] = [];
+  const batch = 1000;
+  let from = 0;
+
+  while (true) {
+    const { data, error } = await supabase
+      .from('leads')
+      .select('*')
+      .order('id', { ascending: true })
+      .range(from, from + batch - 1);
+
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...(data as Lead[]));
+    if (data.length < batch) break;
+    from += batch;
+  }
+
+  return all;
 };
 
 export const getAllLeadPhones = async (): Promise<Set<string>> => {
