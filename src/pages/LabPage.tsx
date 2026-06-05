@@ -254,189 +254,186 @@ export const LabPage = () => {
           </div>
         )}
 
-        {/* فلتر الحالة */}
-        <div className="mb-4">
-          <p className="text-xs font-medium text-gray-500 mb-2">الحالة</p>
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {['الكل', ...STATUSES].map((s) => (
-              <button key={s} onClick={() => setFilter(s)}
-                className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
-                  filter === s ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-                }`}>
-                {s}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* الفلاتر */}
+        <div className="flex flex-wrap gap-6 mb-6">
+          {/* فلتر الطبيب */}
+          {activeDoctors.length > 0 && (
+            <div>
+              <p className="text-xs font-medium text-gray-500 mb-2">الطبيب</p>
+              <div className="flex gap-2 flex-wrap">
+                {['الكل', ...activeDoctors].map((d) => (
+                  <button key={d} onClick={() => setFilterDoctor(d)}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                      filterDoctor === d
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                    }`}>
+                    {d}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {/* فلتر الطبيب */}
-        {activeDoctors.length > 0 && (
-          <div className="mb-4">
-            <p className="text-xs font-medium text-gray-500 mb-2">الطبيب</p>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {['الكل', ...activeDoctors].map((d) => (
-                <button key={d} onClick={() => setFilterDoctor(d)}
-                  className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
-                    filterDoctor === d ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+          {/* فلتر المعمل */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 mb-2">المعمل</p>
+            <div className="flex gap-2 flex-wrap">
+              {['الكل', 'معمل سكاكا', 'معمل بريدة'].map((l) => (
+                <button key={l} onClick={() => setFilterLab(l)}
+                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                    filterLab === l
+                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
                   }`}>
-                  {d}
+                  {l}
                 </button>
               ))}
             </div>
           </div>
-        )}
-
-        {/* فلتر المعمل */}
-        <div className="mb-6">
-          <p className="text-xs font-medium text-gray-500 mb-2">المعمل</p>
-          <div className="flex gap-2">
-            {['الكل', 'معمل سكاكا', 'معمل بريدة'].map((l) => (
-              <button key={l} onClick={() => setFilterLab(l)}
-                className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
-                  filterLab === l ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-sm' : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
-                }`}>
-                {l}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {/* الجدول */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">اسم المريض</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">رقم الملف</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الدكتور</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">نوع الحالة</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">المعمل</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">عدد الأسنان</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الخروج</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الاستلام</th>
-                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700">تاريخ الإعادة</th>
-                  {(isAdmin || canEdit) && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">حفظ</th>}
-                  {isAdmin && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700">حذف</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.length > 0 ? filtered.map((c) => (
-                  <tr key={c.id} className={`border-b border-gray-100 transition-colors ${editingId === c.id ? 'bg-blue-50' : 'hover:bg-gray-50'}`}>
-                    <td className="px-3 py-3">
+        {/* Kanban */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          {STATUSES.map((status) => {
+            const colCases = filtered.filter((c) => c.status === status);
+            const colStyle = {
+              'في المعمل':   { header: 'bg-yellow-100 border-yellow-200', title: 'text-yellow-800', count: 'bg-yellow-200 text-yellow-700', col: 'border-yellow-200 bg-yellow-50/40' },
+              'تم الاستلام': { header: 'bg-green-100 border-green-200',  title: 'text-green-800',  count: 'bg-green-200 text-green-700',  col: 'border-green-200 bg-green-50/40'  },
+              'أعيد للمعمل': { header: 'bg-red-100 border-red-200',      title: 'text-red-800',    count: 'bg-red-200 text-red-700',      col: 'border-red-200 bg-red-50/40'      },
+            }[status]!;
+
+            return (
+              <div key={status} className={`rounded-2xl border ${colStyle.col} overflow-hidden flex flex-col`}>
+                {/* عنوان العمود */}
+                <div className={`flex items-center justify-between px-4 py-3 border-b ${colStyle.header}`}>
+                  <span className={`font-bold text-sm ${colStyle.title}`}>{status}</span>
+                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${colStyle.count}`}>{colCases.length}</span>
+                </div>
+
+                {/* البطاقات */}
+                <div className="flex-1 p-3 space-y-3 min-h-[160px]">
+                  {colCases.length === 0 ? (
+                    <p className="text-center text-gray-400 text-xs pt-8">لا توجد حالات</p>
+                  ) : colCases.map((c) => (
+                    <div key={c.id} className={`bg-white rounded-xl border shadow-sm p-3 transition-all ${editingId === c.id ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-100 hover:shadow-md'}`}>
+
                       {editingId === c.id ? (
-                        <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
-                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-900 focus:outline-none bg-white min-w-[100px]" />
-                      ) : <span className="text-sm font-medium text-gray-900">{c.patient_name}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
-                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white min-w-[70px]" />
-                      ) : <span className="text-sm text-gray-700">{c.file_number ?? '—'}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
-                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white">
-                          <option value="">—</option>
-                          {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
-                        </select>
-                      ) : <span className="text-sm text-gray-700">{c.doctor_name ?? '—'}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
-                          className="w-full px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white min-w-[80px]" />
-                      ) : <span className="text-sm text-gray-700">{c.case_type ?? '—'}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
-                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs font-medium text-blue-700 focus:outline-none bg-white">
-                          <option value="معمل سكاكا">معمل سكاكا</option>
-                          <option value="معمل بريدة">معمل بريدة</option>
-                        </select>
-                      ) : <span className="text-sm font-medium text-blue-700">{c.lab_name}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
-                          className="w-16 px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
-                      ) : <span className="text-sm text-gray-700">{c.teeth_count ?? '—'}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
-                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
-                      ) : <span className="text-sm text-gray-500 whitespace-nowrap">{formatDate(c.sent_date)}</span>}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
-                          className={`px-2 py-1 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      ) : (
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>{c.status}</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="date" value={c.received_date ?? ''} onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
-                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
-                      ) : (
-                        <span className="text-gray-500 text-xs">{c.received_date ? new Date(c.received_date).toLocaleDateString('ar-SA') : '—'}</span>
-                      )}
-                    </td>
-                    <td className="px-3 py-3">
-                      {editingId === c.id ? (
-                        <input type="date" value={c.return_date ?? ''} onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
-                          className="px-2 py-1 border border-blue-300 rounded-lg text-xs text-gray-700 focus:outline-none bg-white" />
-                      ) : (
-                        <span className="text-gray-500 text-xs">{c.return_date ? new Date(c.return_date).toLocaleDateString('ar-SA') : '—'}</span>
-                      )}
-                    </td>
-                    {(isAdmin || canEdit) && (
-                      <td className="px-3 py-3 text-center">
-                        {editingId === c.id ? (
-                          <div className="flex gap-1 justify-center">
+                        /* وضع التعديل */
+                        <div className="space-y-2">
+                          <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
+                            placeholder="اسم المريض"
+                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white font-medium" />
+                          <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
+                            placeholder="رقم الملف"
+                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                          <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
+                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white">
+                            <option value="">— الدكتور —</option>
+                            {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                          </select>
+                          <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
+                            placeholder="نوع الحالة"
+                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                          <div className="grid grid-cols-2 gap-2">
+                            <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
+                              className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white">
+                              <option value="معمل سكاكا">معمل سكاكا</option>
+                              <option value="معمل بريدة">معمل بريدة</option>
+                            </select>
+                            <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
+                              placeholder="عدد الأسنان"
+                              className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                          </div>
+                          <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
+                            className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                          </select>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div>
+                              <p className="text-xs text-gray-400 mb-1">تاريخ الخروج</p>
+                              <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
+                                className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-gray-400 mb-1">تاريخ الاستلام</p>
+                              <input type="date" value={c.received_date ?? ''} onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
+                                className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-400 mb-1">تاريخ الإعادة</p>
+                            <input type="date" value={c.return_date ?? ''} onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
+                              className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                          </div>
+                          <div className="flex gap-2 pt-1">
                             <button onClick={() => handleSave(c.id)} disabled={saving[c.id]}
-                              className="px-3 py-1.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all disabled:opacity-50">
+                              className="flex-1 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
                               {saving[c.id] ? '...' : 'حفظ'}
                             </button>
                             <button onClick={() => handleCancelEdit(c.id)}
-                              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-all">
+                              className="flex-1 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
                               إلغاء
                             </button>
                           </div>
-                        ) : (
-                          <button onClick={() => setEditingId(c.id)}
-                            className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg text-xs font-medium hover:shadow-md transition-all">
-                            تعديل
-                          </button>
-                        )}
-                      </td>
-                    )}
-                    {isAdmin && (
-                      <td className="px-5 py-4 text-center">
-                        <button onClick={() => handleDelete(c.id)} className="text-red-500 hover:text-red-700 transition-colors">
-                          <MdDelete className="w-5 h-5" />
-                        </button>
-                      </td>
-                    )}
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={isAdmin ? 13 : (canEdit ? 12 : 11)} className="px-6 py-12 text-center text-gray-400">
-                      {loading ? 'جاري التحميل...' : 'لا توجد حالات — اضغط "حالة جديدة" للإضافة'}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+                        </div>
+                      ) : (
+                        /* وضع العرض */
+                        <>
+                          <div className="flex items-start justify-between mb-2">
+                            <div className="flex gap-1">
+                              {(isAdmin || canEdit) && (
+                                <button onClick={() => setEditingId(c.id)}
+                                  className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
+                                  تعديل
+                                </button>
+                              )}
+                              {isAdmin && (
+                                <button onClick={() => handleDelete(c.id)} className="text-xs text-red-400 hover:text-red-600 transition-colors mr-2">
+                                  <MdDelete className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold text-gray-900 text-sm">{c.patient_name}</p>
+                              {c.file_number && <p className="text-xs text-gray-400">ملف: {c.file_number}</p>}
+                            </div>
+                          </div>
+
+                          <div className="space-y-1 text-right">
+                            {c.doctor_name && (
+                              <p className="text-xs text-gray-600">
+                                <span className="text-gray-400">الدكتور: </span>{c.doctor_name}
+                              </p>
+                            )}
+                            {c.case_type && (
+                              <p className="text-xs text-gray-600">
+                                <span className="text-gray-400">نوع الحالة: </span>{c.case_type}
+                              </p>
+                            )}
+                            {c.teeth_count && (
+                              <p className="text-xs text-gray-600">
+                                <span className="text-gray-400">عدد الأسنان: </span>{c.teeth_count}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-1">
+                            <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
+                            <div className="text-xs text-gray-400 text-right space-y-0.5">
+                              {c.sent_date && <p>خروج: {formatDate(c.sent_date)}</p>}
+                              {c.received_date && <p>استلام: {new Date(c.received_date).toLocaleDateString('ar-SA')}</p>}
+                              {c.return_date && <p>إعادة: {new Date(c.return_date).toLocaleDateString('ar-SA')}</p>}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
 
       </div>
