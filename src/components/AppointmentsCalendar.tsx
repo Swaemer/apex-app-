@@ -153,6 +153,13 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                       )}
                     </div>
                     {l.service && <p className="text-xs text-gray-500 mt-1">{l.service}</p>}
+                    {l.doctor && (
+                      <div className="flex items-center gap-1 mt-1.5">
+                        <span className="text-xs text-cyan-600 bg-cyan-50 px-2 py-0.5 rounded-lg font-medium">
+                          🩺 {l.doctor}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 ))}
             </div>
