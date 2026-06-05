@@ -48,6 +48,13 @@ export const deleteLeadsByIds = async (ids: number[]): Promise<void> => {
   if (error) throw error;
 };
 
+export const upsertLeadsForce = async (leads: NewLead[]): Promise<void> => {
+  const { error } = await supabase
+    .from('leads')
+    .upsert(leads, { onConflict: 'phone', ignoreDuplicates: false });
+  if (error) throw error;
+};
+
 export const updateLeadStatus = async (id: number, status: string): Promise<void> => {
   const { error } = await supabase.from('leads').update({ status }).eq('id', id);
   if (error) throw error;
