@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, insertLeads, upsertLeadsForce, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -50,12 +50,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [distributing, setDistributing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
-  const [importPreview, setImportPreview] = useState<{
-    toAdd: NewLead[];
-    duplicates: NewLead[];
-  } | null>(null);
-  const [addDuplicates, setAddDuplicates] = useState(false);
-  const [confirming, setConfirming] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 500;
 
@@ -109,15 +103,18 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
       const seenPhones = new Set<string>();
       const toAdd: NewLead[] = [];
-      const duplicates: NewLead[] = [];
+      let skipped = 0;
 
       sheetLeads.forEach((lead, index) => {
         const phone = lead.phone || '';
-        if (seenPhones.has(phone)) return;
+        if (seenPhones.has(phone) || existingPhones.has(phone)) {
+          skipped++;
+          return;
+        }
         seenPhones.add(phone);
         const shouldDistribute =
           !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
-        const built: NewLead = {
+        toAdd.push({
           name: lead.name || '',
           phone,
           service: lead.service || null,
@@ -125,49 +122,26 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           notes: null,
           appointment_at: null,
           assigned_to: shouldDistribute ? assignUser(index, sheetLeads.length) : 'لم يتم التعيين',
-        };
-        if (existingPhones.has(phone)) {
-          duplicates.push(built);
-        } else {
-          toAdd.push(built);
-        }
+        });
       });
 
-      setAddDuplicates(false);
-      setImportPreview({ toAdd, duplicates });
-    } catch (error) {
-      const msg =
-        error instanceof Error
-          ? error.message
-          : (error as { message?: string })?.message ?? JSON.stringify(error);
-      toast.error(`فشل جلب البيانات: ${msg}`);
-      console.error('Import error:', error);
-    } finally {
-      setImporting(false);
-    }
-  };
-
-  const confirmImport = async () => {
-    if (!importPreview) return;
-    setConfirming(true);
-    try {
-      const { toAdd, duplicates } = importPreview;
       if (toAdd.length > 0) await insertLeads(toAdd);
-      if (addDuplicates && duplicates.length > 0) await upsertLeadsForce(duplicates);
       await loadLeads();
-      toast.success(
-        `تمت إضافة ${toAdd.length} جديد` +
-        (addDuplicates && duplicates.length > 0 ? ` وتحديث ${duplicates.length} موجود` : '')
-      );
-      setImportPreview(null);
+
+      if (toAdd.length === 0) {
+        toast('لا توجد سجلات جديدة — كل البيانات موجودة بالفعل');
+      } else {
+        toast.success(`تمت إضافة ${toAdd.length} جديد${skipped > 0 ? ` · تم تجاهل ${skipped} موجود` : ''}`);
+      }
     } catch (error) {
       const msg =
         error instanceof Error
           ? error.message
           : (error as { message?: string })?.message ?? JSON.stringify(error);
       toast.error(`فشل الاستيراد: ${msg}`);
+      console.error('Import error:', error);
     } finally {
-      setConfirming(false);
+      setImporting(false);
     }
   };
 
@@ -448,80 +422,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           </div>
         )}
 
-        {/* معاينة الاستيراد */}
-        {importPreview && (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">معاينة الاستيراد</h2>
-            <div className="flex flex-col gap-4">
-
-              {/* الجديد */}
-              <div className="flex items-start gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
-                <span className="text-green-600 text-xl mt-0.5">✅</span>
-                <div>
-                  <p className="font-semibold text-green-800">
-                    جديد: {importPreview.toAdd.length} سجل
-                  </p>
-                  <p className="text-sm text-green-700 mt-0.5">
-                    {importPreview.toAdd.length > 0
-                      ? 'سيتم إضافتهم تلقائياً'
-                      : 'لا توجد سجلات جديدة'}
-                  </p>
-                </div>
-              </div>
-
-              {/* الموجودة */}
-              <div className="flex items-start gap-3 p-4 bg-yellow-50 rounded-xl border border-yellow-200">
-                <span className="text-yellow-600 text-xl mt-0.5">⚠️</span>
-                <div className="flex-1">
-                  <p className="font-semibold text-yellow-800">
-                    موجودة بالفعل: {importPreview.duplicates.length} سجل
-                  </p>
-                  {importPreview.duplicates.length > 0 && (
-                    <>
-                      <p className="text-sm text-yellow-700 mt-0.5 mb-3">
-                        هذه الأرقام مسجّلة في قاعدة البيانات — هل تريد تحديثها؟
-                      </p>
-                      <label className="flex items-center gap-2 cursor-pointer select-none">
-                        <input
-                          type="checkbox"
-                          checked={addDuplicates}
-                          onChange={(e) => setAddDuplicates(e.target.checked)}
-                          className="w-4 h-4 accent-yellow-600"
-                        />
-                        <span className="text-sm font-medium text-yellow-800">
-                          نعم، قم بتحديث البيانات الموجودة
-                        </span>
-                      </label>
-                      <div className="mt-3 max-h-32 overflow-y-auto flex flex-col gap-1">
-                        {importPreview.duplicates.map((d) => (
-                          <span key={d.phone} className="text-xs text-yellow-700 bg-yellow-100 px-2 py-1 rounded-lg w-fit">
-                            {d.name} — {d.phone}
-                          </span>
-                        ))}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-5">
-              <button
-                onClick={confirmImport}
-                disabled={confirming || (importPreview.toAdd.length === 0 && !addDuplicates)}
-                className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all disabled:opacity-50"
-              >
-                {confirming ? 'جاري الاستيراد...' : 'تأكيد الاستيراد'}
-              </button>
-              <button
-                onClick={() => setImportPreview(null)}
-                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
-              >
-                إلغاء
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Status Filters */}
         <div className="mb-6">
