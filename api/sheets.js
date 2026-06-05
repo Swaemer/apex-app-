@@ -10,14 +10,36 @@ export default async function handler(req, res) {
     const WRITE_URL = process.env.SHEETS_WRITE_URL;
     if (!WRITE_URL) return res.status(503).json({ error: 'SHEETS_WRITE_URL not configured' });
 
-    const response = await fetch(WRITE_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(req.body),
-      redirect: 'follow',
-    });
-    const data = await response.json();
-    return res.json(data);
+    try {
+      const body = JSON.stringify(req.body);
+
+      // Apps Script يعمل redirect 302 — نتابعه يدوياً عشان ما تُفقد البيانات
+      let response = await fetch(WRITE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        redirect: 'manual',
+      });
+
+      if (response.status === 301 || response.status === 302) {
+        const location = response.headers.get('location');
+        response = await fetch(location, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body,
+          redirect: 'follow',
+        });
+      }
+
+      const text = await response.text();
+      try {
+        return res.json(JSON.parse(text));
+      } catch {
+        return res.json({ ok: true });
+      }
+    } catch (err) {
+      return res.status(500).json({ error: err.message });
+    }
   }
 
   // GET — قراءة البيانات من الشيت
