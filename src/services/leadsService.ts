@@ -37,13 +37,13 @@ export const getLeads = async (): Promise<Lead[]> => {
   return all;
 };
 
-export const getAllLeadPhones = async (): Promise<Set<string>> => {
+export const getLeadPhoneIdMap = async (): Promise<Map<string, number>> => {
   const { data, error } = await supabase
     .from('leads')
-    .select('phone')
+    .select('id, phone')
     .limit(1_000_000);
   if (error) throw error;
-  return new Set((data as { phone: string }[]).map((r) => r.phone));
+  return new Map((data as { id: number; phone: string }[]).map((r) => [r.phone, r.id]));
 };
 
 export const upsertLeads = async (leads: NewLead[]): Promise<void> => {

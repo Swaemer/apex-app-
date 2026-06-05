@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, getAllLeadPhones, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, getLeadPhoneIdMap, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -92,14 +92,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       const rows: string[][] = await response.json();
       const dataRows = rows.slice(1);
 
-      const existingPhones = await getAllLeadPhones();
+      const phoneIdMap = await getLeadPhoneIdMap();
 
       const seenPhones = new Set<string>();
       const toAdd: Array<{ lead: NewLead; sheetRow: number }> = [];
+      const toWriteId: Array<{ id: number; sheetRow: number }> = [];
       let skipped = 0;
 
       dataRows.forEach((cells, index) => {
-        // إذا في ID بالشيت = استُورد سابقاً
+        // إذا في ID بالشيت = استُورد سابقاً ومكتوب ID
         if (config.idColumnIndex !== undefined) {
           const existingId = (cells[config.idColumnIndex] ?? '').toString().trim();
           if (existingId) { skipped++; return; }
@@ -113,11 +114,17 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         if (!lead.name && !lead.phone) return;
 
         const phone = lead.phone || '';
-        if (seenPhones.has(phone) || existingPhones.has(phone)) {
+        if (seenPhones.has(phone)) { skipped++; return; }
+        seenPhones.add(phone);
+
+        if (phoneIdMap.has(phone)) {
+          // موجود بالـ DB لكن ما عنده ID بالشيت — اكتب ID فقط
+          if (config.idColumnIndex !== undefined) {
+            toWriteId.push({ id: phoneIdMap.get(phone)!, sheetRow: index + 2 });
+          }
           skipped++;
           return;
         }
-        seenPhones.add(phone);
 
         const shouldDistribute =
           !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
@@ -131,29 +138,31 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             appointment_at: null,
             assigned_to: shouldDistribute ? assignUser(index, dataRows.length) : 'لم يتم التعيين',
           },
-          sheetRow: index + 2, // 1-based, +1 for header
+          sheetRow: index + 2,
         });
       });
 
       const inserted = await insertLeads(toAdd.map((t) => t.lead));
 
-      // اكتب الـ IDs رجع للشيت
-      if (config.idColumnIndex !== undefined && inserted.length > 0) {
-        const phoneToRow = new Map(toAdd.map((t) => [t.lead.phone, t.sheetRow]));
-        const updates = inserted
-          .filter((l) => phoneToRow.has(l.phone))
-          .map((l) => ({
-            row: phoneToRow.get(l.phone)!,
-            col: config.idColumnIndex! + 1, // Apps Script 1-based
-            value: String(l.id),
-          }));
+      // اكتب الـ IDs للشيت (جديد + موجود بدون ID)
+      if (config.idColumnIndex !== undefined) {
+        const newUpdates = inserted.map((l) => {
+          const row = toAdd.find((t) => t.lead.phone === l.phone)!.sheetRow;
+          return { row, col: config.idColumnIndex! + 1, value: String(l.id) };
+        });
+        const existingUpdates = toWriteId.map(({ id, sheetRow }) => ({
+          row: sheetRow,
+          col: config.idColumnIndex! + 1,
+          value: String(id),
+        }));
+        const allUpdates = [...newUpdates, ...existingUpdates];
 
-        if (updates.length > 0) {
+        if (allUpdates.length > 0) {
           try {
             const writeRes = await fetch(config.sheetsUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ updates }),
+              body: JSON.stringify({ updates: allUpdates }),
             });
             const writeData = await writeRes.json().catch(() => ({}));
             if (!writeRes.ok || writeData.error) {
