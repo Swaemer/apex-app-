@@ -379,7 +379,11 @@ export const LabPage = () => {
                         /* وضع العرض */
                         <>
                           <div className="flex items-start justify-between mb-2">
-                            <div className="flex gap-1">
+                            <div>
+                              <p className="font-bold text-gray-900 text-sm">{c.patient_name}</p>
+                              {c.file_number && <p className="text-xs text-gray-400 mt-0.5">ملف: {c.file_number}</p>}
+                            </div>
+                            <div className="flex items-center gap-1.5 flex-shrink-0">
                               {(isAdmin || canEdit) && (
                                 <button onClick={() => setEditingId(c.id)}
                                   className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
@@ -387,18 +391,14 @@ export const LabPage = () => {
                                 </button>
                               )}
                               {isAdmin && (
-                                <button onClick={() => handleDelete(c.id)} className="text-xs text-red-400 hover:text-red-600 transition-colors mr-2">
+                                <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-600 transition-colors">
                                   <MdDelete className="w-3.5 h-3.5" />
                                 </button>
                               )}
                             </div>
-                            <div className="text-right">
-                              <p className="font-bold text-gray-900 text-sm">{c.patient_name}</p>
-                              {c.file_number && <p className="text-xs text-gray-400">ملف: {c.file_number}</p>}
-                            </div>
                           </div>
 
-                          <div className="space-y-1 text-right">
+                          <div className="space-y-1">
                             {c.doctor_name && (
                               <p className="text-xs text-gray-600">
                                 <span className="text-gray-400">الدكتور: </span>{c.doctor_name}
@@ -417,12 +417,12 @@ export const LabPage = () => {
                           </div>
 
                           <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-1">
-                            <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
-                            <div className="text-xs text-gray-400 text-right space-y-0.5">
+                            <div className="text-xs text-gray-400 space-y-0.5">
                               {c.sent_date && <p>خروج: {formatDate(c.sent_date)}</p>}
                               {c.received_date && <p>استلام: {new Date(c.received_date).toLocaleDateString('ar-SA')}</p>}
                               {c.return_date && <p>إعادة: {new Date(c.return_date).toLocaleDateString('ar-SA')}</p>}
                             </div>
+                            <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
                           </div>
                         </>
                       )}
