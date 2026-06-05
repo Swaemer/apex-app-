@@ -108,7 +108,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         const lead: Partial<NewLead> = {};
         config.columns.forEach((col) => {
-          let val = (cells[col.columnIndex] ?? '').toString().trim();
+          let val = (cells[col.columnIndex] ?? '').toString().trim().replace(/"/g, '');
           // استخرج المفتاح الأول اللي قيمته true من صيغة {key:true}
           if (val.startsWith('{')) {
             const match = val.match(/\{([^:}]+):true\}/);
