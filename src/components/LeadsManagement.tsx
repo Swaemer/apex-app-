@@ -52,7 +52,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [distributing, setDistributing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 500;
+  const PAGE_SIZE = 250;
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
