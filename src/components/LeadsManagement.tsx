@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { MdRefresh } from 'react-icons/md';
-import { getLeads, upsertLeads, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
+import { getLeads, insertLeads, deleteLeadsByPhones, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 
@@ -84,34 +84,47 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       const response = await fetch(config.sheetsUrl);
       const rows: string[][] = await response.json();
       const dataRows = rows.slice(1); // skip header
-      const total = dataRows.length;
 
-      const newLeads: NewLead[] = dataRows
-        .map((cells, index) => {
+      const existingLeads = await getLeads();
+      const existingPhones = new Set(existingLeads.map((l) => l.phone));
+
+      const sheetLeads = dataRows
+        .map((cells) => {
           const lead: Partial<NewLead> = {};
-
           config.columns.forEach((col) => {
             lead[col.field] = (cells[col.columnIndex] ?? '').toString().trim();
           });
+          return lead;
+        })
+        .filter((lead) => lead.name || lead.phone);
 
+      const toAdd: NewLead[] = [];
+      const toDeletePhones: string[] = [];
+
+      sheetLeads.forEach((lead, index) => {
+        const phone = lead.phone || '';
+        if (existingPhones.has(phone)) {
+          toDeletePhones.push(phone);
+        } else {
           const shouldDistribute =
             !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
-
-          return {
+          toAdd.push({
             name: lead.name || '',
-            phone: lead.phone || '',
+            phone,
             service: lead.service || null,
             status: lead.status || 'جديد',
             notes: null,
             appointment_at: null,
-            assigned_to: shouldDistribute ? assignUser(index, total) : 'لم يتم التعيين',
-          };
-        })
-        .filter((lead) => lead.name || lead.phone);
+            assigned_to: shouldDistribute ? assignUser(index, sheetLeads.length) : 'لم يتم التعيين',
+          });
+        }
+      });
 
-      await upsertLeads(newLeads);
+      if (toAdd.length > 0) await insertLeads(toAdd);
+      if (toDeletePhones.length > 0) await deleteLeadsByPhones(toDeletePhones);
+
       await loadLeads();
-      toast.success(`تم استيراد ${newLeads.length} سجل من Google Sheets`);
+      toast.success(`تمت الإضافة: ${toAdd.length} | تم الحذف: ${toDeletePhones.length}`);
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
       toast.error(`فشل الاستيراد: ${msg}`);

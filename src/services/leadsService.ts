@@ -31,6 +31,16 @@ export const upsertLeads = async (leads: NewLead[]): Promise<void> => {
   if (error) throw error;
 };
 
+export const insertLeads = async (leads: NewLead[]): Promise<void> => {
+  const { error } = await supabase.from('leads').insert(leads);
+  if (error) throw error;
+};
+
+export const deleteLeadsByPhones = async (phones: string[]): Promise<void> => {
+  const { error } = await supabase.from('leads').delete().in('phone', phones);
+  if (error) throw error;
+};
+
 export const updateLeadStatus = async (id: number, status: string): Promise<void> => {
   const { error } = await supabase.from('leads').update({ status }).eq('id', id);
   if (error) throw error;
