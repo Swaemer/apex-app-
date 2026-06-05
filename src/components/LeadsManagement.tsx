@@ -660,7 +660,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                         </td>
                       )}
                       <td className="px-6 py-4 text-sm text-gray-900 font-medium">{lead.name || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{lead.phone || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900" dir="ltr">{lead.phone || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
                       <td className="px-6 py-4 text-sm">
                         <select
