@@ -754,6 +754,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </tbody>
             </table>
           </div>
+        </div>
+
         {/* Pagination */}
         {totalPages > 1 && (
           <div className="flex items-center justify-center gap-3 mt-5">
