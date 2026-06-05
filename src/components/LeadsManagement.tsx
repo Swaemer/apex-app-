@@ -120,11 +120,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         }
       });
 
-      if (toAdd.length > 0) await insertLeads(toAdd);
+      const uniqueToAdd = toAdd.filter(
+        (lead, idx, arr) => arr.findIndex((l) => l.phone === lead.phone) === idx
+      );
+
+      if (uniqueToAdd.length > 0) await insertLeads(uniqueToAdd);
       if (toDeletePhones.length > 0) await deleteLeadsByPhones(toDeletePhones);
 
       await loadLeads();
-      toast.success(`تمت الإضافة: ${toAdd.length} | تم الحذف: ${toDeletePhones.length}`);
+      toast.success(`تمت الإضافة: ${uniqueToAdd.length} | تم الحذف: ${toDeletePhones.length}`);
     } catch (error) {
       const msg =
         error instanceof Error
