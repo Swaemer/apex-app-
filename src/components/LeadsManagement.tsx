@@ -147,13 +147,17 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         if (updates.length > 0) {
           try {
-            await fetch(config.sheetsUrl, {
+            const writeRes = await fetch(config.sheetsUrl, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ updates }),
             });
-          } catch {
-            console.warn('تعذّر كتابة الـ IDs للشيت');
+            const writeData = await writeRes.json().catch(() => ({}));
+            if (!writeRes.ok || writeData.error) {
+              toast.error(`تعذّر كتابة IDs للشيت: ${writeData.error ?? writeRes.status}`);
+            }
+          } catch (e) {
+            toast.error(`تعذّر الاتصال بالشيت: ${e instanceof Error ? e.message : String(e)}`);
           }
         }
       }
