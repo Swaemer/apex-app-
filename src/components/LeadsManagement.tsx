@@ -98,37 +98,30 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         })
         .filter((lead) => lead.name || lead.phone);
 
+      const seenPhones = new Set<string>();
       const toAdd: NewLead[] = [];
-      const toDeletePhones: string[] = [];
 
       sheetLeads.forEach((lead, index) => {
         const phone = lead.phone || '';
-        if (existingPhones.has(phone)) {
-          toDeletePhones.push(phone);
-        } else {
-          const shouldDistribute =
-            !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
-          toAdd.push({
-            name: lead.name || '',
-            phone,
-            service: lead.service || null,
-            status: lead.status || 'جديد',
-            notes: null,
-            appointment_at: null,
-            assigned_to: shouldDistribute ? assignUser(index, sheetLeads.length) : 'لم يتم التعيين',
-          });
-        }
+        if (existingPhones.has(phone) || seenPhones.has(phone)) return;
+        seenPhones.add(phone);
+        const shouldDistribute =
+          !config.distribution?.distributeOnlyNewLeads || lead.status === 'جديد';
+        toAdd.push({
+          name: lead.name || '',
+          phone,
+          service: lead.service || null,
+          status: lead.status || 'جديد',
+          notes: null,
+          appointment_at: null,
+          assigned_to: shouldDistribute ? assignUser(index, sheetLeads.length) : 'لم يتم التعيين',
+        });
       });
 
-      const uniqueToAdd = toAdd.filter(
-        (lead, idx, arr) => arr.findIndex((l) => l.phone === lead.phone) === idx
-      );
-
-      if (uniqueToAdd.length > 0) await insertLeads(uniqueToAdd);
-      if (toDeletePhones.length > 0) await deleteLeadsByPhones(toDeletePhones);
+      if (toAdd.length > 0) await insertLeads(toAdd);
 
       await loadLeads();
-      toast.success(`تمت الإضافة: ${uniqueToAdd.length} | تم الحذف: ${toDeletePhones.length}`);
+      toast.success(`تمت إضافة ${toAdd.length} سجل جديد`);
     } catch (error) {
       const msg =
         error instanceof Error
