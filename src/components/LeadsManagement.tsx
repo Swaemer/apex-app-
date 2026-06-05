@@ -56,6 +56,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   } | null>(null);
   const [addDuplicates, setAddDuplicates] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 500;
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
@@ -249,6 +251,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) return false;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedLeads = filteredLeads.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const getStatusBadgeColor = (status: string) => {
     const colors: Record<string, string> = {
@@ -524,7 +530,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             {allStatuses.map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status)}
+                onClick={() => { setFilter(status); setCurrentPage(1); }}
                 className={`px-6 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                   filter === status
                     ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
@@ -545,7 +551,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               {assignedUsers.map((user) => (
                 <button
                   key={user}
-                  onClick={() => setFilterUser(user)}
+                  onClick={() => { setFilterUser(user); setCurrentPage(1); }}
                   className={`px-6 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                     filterUser === user
                       ? 'bg-blue-600 text-white shadow-sm'
@@ -591,7 +597,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </thead>
               <tbody>
                 {filteredLeads.length > 0 ? (
-                  filteredLeads.map((lead) => (
+                  pagedLeads.map((lead) => (
                     <tr
                       key={lead.id}
                       className={`border-b border-gray-100 transition-colors ${getRowColor(lead.status)}`}
@@ -748,7 +754,30 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </tbody>
             </table>
           </div>
-        </div>
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="px-5 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-all"
+            >
+              السابق
+            </button>
+            <span className="text-sm text-gray-600 font-medium">
+              صفحة {safePage} من {totalPages}
+              <span className="text-gray-400 mx-2">·</span>
+              {filteredLeads.length} سجل
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="px-5 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-all"
+            >
+              التالي
+            </button>
+          </div>
+        )}
 
         {/* Team Stats — admin only */}
         {isAdmin &&
