@@ -44,9 +44,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [filterUser, setFilterUser] = useState<string>('الكل');
   const [loading, setLoading] = useState(false);
   const [importing, setImporting] = useState(false);
-  const [savedNote, setSavedNote] = useState<number | null>(null);
-  const [noteValues, setNoteValues] = useState<Record<number, string>>({});
-  const [pendingAppointment, setPendingAppointment] = useState<Record<number, { date: string; hour: string }>>({});
   const [showDistribute, setShowDistribute] = useState(false);
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [distributing, setDistributing] = useState(false);
@@ -207,16 +204,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: string) => {
-    try {
-      await updateLeadStatus(id, newStatus);
-      setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l)));
-      toast.success('تم تحديث الحالة');
-    } catch {
-      toast.error('خطأ في تحديث الحالة');
-    }
-  };
-
   const markDeletedInSheet = (ids: number[]) => {
     if (config.idColumnIndex === undefined) return;
     fetch(config.sheetsUrl, {
@@ -316,7 +303,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             : l
         )
       );
-      setNoteValues((prev) => ({ ...prev, [selectedLead.id]: modalNotes }));
       toast.success('تم حفظ التغييرات');
       setSelectedLead(null);
     } catch (err: unknown) {
@@ -434,21 +420,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     }
   };
 
-  const handleSaveAppointment = async (id: number) => {
-    const p = pendingAppointment[id];
-    if (!p?.date || !p?.hour) { toast.error('اختر التاريخ والساعة'); return; }
-    try {
-      // نخزّن مباشرة بدون تحويل timezone عشان تطلع نفس الساعة للجميع
-      const isoString = `${p.date}T${p.hour.padStart(2, '0')}:00:00Z`;
-      await updateLeadAppointment(id, isoString);
-      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, appointment_at: isoString } : l));
-      setPendingAppointment((prev) => { const n = { ...prev }; delete n[id]; return n; });
-      toast.success('تم حفظ موعد الحجز');
-    } catch {
-      toast.error('خطأ في حفظ الموعد');
-    }
-  };
-
   const handleAssignmentChange = async (id: number, assigned_to: string) => {
     try {
       await updateLeadAssignment(id, assigned_to);
@@ -456,18 +427,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       toast.success('تم تغيير التعيين');
     } catch {
       toast.error('خطأ في تغيير التعيين');
-    }
-  };
-
-  const handleNoteBlur = async (id: number) => {
-    const notes = noteValues[id] ?? leads.find((l) => l.id === id)?.notes ?? '';
-    try {
-      await updateLeadNotes(id, notes);
-      setLeads((prev) => prev.map((l) => l.id === id ? { ...l, notes } : l));
-      setSavedNote(id);
-      setTimeout(() => setSavedNote(null), 2000);
-    } catch {
-      toast.error('خطأ في حفظ الملاحظة');
     }
   };
 
