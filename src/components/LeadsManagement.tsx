@@ -200,7 +200,12 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ markDeleted: ids }),
-    }).catch(() => {});
+    })
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok || d.error) toast.error(`خطأ الشيت: ${d.error ?? r.status}`);
+      })
+      .catch((e) => toast.error(`تعذّر الاتصال: ${e.message}`));
   };
 
   const handleDelete = async (id: number) => {
