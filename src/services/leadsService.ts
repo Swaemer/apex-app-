@@ -134,9 +134,8 @@ export const getEmployees = async (): Promise<Profile[]> => {
 
 export const getDoctors = async (): Promise<{ name: string }[]> => {
   const { data, error } = await supabase
-    .from('profiles')
+    .from('doctors')
     .select('name')
-    .eq('role', 'doctor')
     .order('name');
   if (error) throw error;
   return (data ?? []) as { name: string }[];
