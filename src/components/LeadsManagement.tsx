@@ -386,6 +386,25 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     return colors[status] || 'bg-white hover:bg-gray-50';
   };
 
+  const getInitials = (name: string) => {
+    const words = name.trim().split(/\s+/);
+    const a = words[0]?.[0] ?? '';
+    const b = words[1]?.[0] ?? '';
+    return (a + b) || name[0] || '؟';
+  };
+
+  const AVATAR_COLORS = [
+    'bg-blue-500', 'bg-purple-500', 'bg-emerald-500', 'bg-orange-500',
+    'bg-pink-500', 'bg-teal-500', 'bg-indigo-500', 'bg-rose-500',
+    'bg-cyan-500', 'bg-amber-500',
+  ];
+  const getAvatarColor = (name: string) => {
+    let h = 0;
+    for (const c of name) h = (h * 31 + c.charCodeAt(0)) & 0xffff;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  };
+
+
   const handleDistribute = async () => {
     if (selectedEmployees.length === 0) {
       toast.error('اختر موظفاً واحداً على الأقل');
@@ -659,10 +678,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   pagedLeads.map((lead) => (
                     <tr
                       key={lead.id}
-                      className={`border-b border-gray-100 transition-colors ${getRowColor(lead.status)}`}
+                      onClick={() => openLeadModal(lead)}
+                      className={`border-b border-gray-100 transition-colors cursor-pointer ${getRowColor(lead.status)}`}
                     >
                       {isAdmin && (
-                        <td className="px-4 py-4 text-center">
+                        <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                           <input
                             type="checkbox"
                             className="w-4 h-4 accent-red-600 cursor-pointer"
@@ -677,13 +697,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           />
                         </td>
                       )}
-                      <td className="px-6 py-4 text-sm font-medium">
-                        <button
-                          onClick={() => openLeadModal(lead)}
-                          className="text-gray-900 hover:text-blue-600 hover:underline text-right transition-colors"
-                        >
-                          {lead.name || '-'}
-                        </button>
+                      <td className="px-4 py-3 text-sm font-medium">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 select-none ${getAvatarColor(lead.name || '؟')}`}>
+                            {getInitials(lead.name || '؟')}
+                          </div>
+                          <span className="text-gray-900">{lead.name || '-'}</span>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900" dir="ltr">{lead.phone || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
@@ -711,7 +731,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                         {lead.notes || <span className="text-gray-300">—</span>}
                       </td>
                       {isAdmin && config.distribution?.enabled && (
-                        <td className="px-6 py-4 text-sm">
+                        <td className="px-6 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
                           {employeesList.length > 0 ? (
                             <select
                               value={lead.assigned_to || ''}
@@ -738,7 +758,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           ? new Date(lead.updated_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })
                           : '—'}
                       </td>
-                      <td className="px-6 py-4 text-center">
+                      <td className="px-6 py-4 text-center" onClick={(e) => e.stopPropagation()}>
                         {isAdmin && (
                           <button
                             onClick={() => handleDelete(lead.id)}
