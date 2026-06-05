@@ -126,7 +126,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       await loadLeads();
       toast.success(`تمت الإضافة: ${toAdd.length} | تم الحذف: ${toDeletePhones.length}`);
     } catch (error) {
-      const msg = error instanceof Error ? error.message : String(error);
+      const msg =
+        error instanceof Error
+          ? error.message
+          : (error as { message?: string })?.message ?? JSON.stringify(error);
       toast.error(`فشل الاستيراد: ${msg}`);
       console.error('Import error:', error);
     } finally {
