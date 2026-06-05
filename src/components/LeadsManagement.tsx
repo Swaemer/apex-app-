@@ -244,16 +244,16 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   };
 
   const toggleSelectAll = () => {
-    if (filteredLeads.every((l) => selectedIds.has(l.id))) {
+    if (pagedLeads.every((l) => selectedIds.has(l.id))) {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        filteredLeads.forEach((l) => next.delete(l.id));
+        pagedLeads.forEach((l) => next.delete(l.id));
         return next;
       });
     } else {
       setSelectedIds((prev) => {
         const next = new Set(prev);
-        filteredLeads.forEach((l) => next.add(l.id));
+        pagedLeads.forEach((l) => next.add(l.id));
         return next;
       });
     }
@@ -592,7 +592,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       <input
                         type="checkbox"
                         className="w-4 h-4 accent-red-600 cursor-pointer"
-                        checked={filteredLeads.length > 0 && filteredLeads.every((l) => selectedIds.has(l.id))}
+                        checked={pagedLeads.length > 0 && pagedLeads.every((l) => selectedIds.has(l.id))}
                         onChange={toggleSelectAll}
                       />
                     </th>
