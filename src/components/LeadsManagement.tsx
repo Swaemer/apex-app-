@@ -849,21 +849,27 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           onClick={() => setSelectedLead(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 text-right overflow-y-auto max-h-[90vh]"
+            dir="rtl"
+            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 overflow-y-auto max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex items-start justify-between mb-5">
+            <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0 ${getAvatarColor(selectedLead.name || '؟')}`}>
+                  {getInitials(selectedLead.name || '؟')}
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">{selectedLead.name}</h2>
+                  <p className="text-sm text-blue-600 mt-0.5 font-medium" dir="ltr">{selectedLead.phone}</p>
+                </div>
+              </div>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none mt-1"
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none flex-shrink-0"
               >
                 ✕
               </button>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">{selectedLead.name}</h2>
-                <p className="text-sm text-blue-600 mt-1 font-medium" dir="ltr">{selectedLead.phone}</p>
-              </div>
             </div>
 
             {/* Info chips */}
@@ -933,11 +939,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                     className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
                   >
                     <option value="">-- الساعة --</option>
-                    {Array.from({ length: 24 }, (_, i) => {
-                      const label =
-                        i === 0 ? '12:00 ص' : i < 12 ? `${i}:00 ص` : i === 12 ? '12:00 م' : `${i - 12}:00 م`;
+                    {Array.from({ length: 14 }, (_, i) => {
+                      const hour = i + 9;
+                      const label = hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
                       return (
-                        <option key={i} value={String(i).padStart(2, '0')}>
+                        <option key={hour} value={String(hour).padStart(2, '0')}>
                           {label}
                         </option>
                       );
@@ -962,17 +968,17 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             {/* Action buttons */}
             <div className="flex gap-3">
               <button
-                onClick={() => setSelectedLead(null)}
-                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
-              >
-                إلغاء
-              </button>
-              <button
                 onClick={handleModalSave}
                 disabled={modalSaving}
                 className="flex-1 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 disabled:opacity-60 transition-colors"
               >
                 {modalSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+              </button>
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+              >
+                إلغاء
               </button>
             </div>
           </div>
