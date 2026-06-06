@@ -29,7 +29,6 @@ export const LabPage = () => {
   const [cases, setCases] = useState<LabCase[]>([]);
   const [filterDoctor, setFilterDoctor] = useState('الكل');
   const [filterLab, setFilterLab] = useState('الكل');
-  const [loading, setLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [newCase, setNewCase] = useState({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' });
   const [pending, setPending] = useState<Record<number, Partial<LabCase>>>({});
@@ -39,10 +38,8 @@ export const LabPage = () => {
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
 
   const load = async () => {
-    setLoading(true);
     try { setCases(await getLabCases()); }
     catch { toast.error('خطأ في تحميل البيانات'); }
-    finally { setLoading(false); }
   };
 
   useEffect(() => {
