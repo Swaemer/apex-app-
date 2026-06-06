@@ -151,7 +151,9 @@ export const LabPage = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-1">استقبال المعمل</h1>
+          <p className="text-gray-500 mb-4">إجمالي الحالات: {filtered.length}</p>
           {(isAdmin || canEdit) && (
             <button
               onClick={() => setShowForm(true)}
@@ -161,10 +163,6 @@ export const LabPage = () => {
               حالة جديدة
             </button>
           )}
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-1">استقبال المعمل</h1>
-            <p className="text-gray-500">إجمالي الحالات: {filtered.length}</p>
-          </div>
         </div>
 
         {/* Modal إضافة حالة جديدة */}
