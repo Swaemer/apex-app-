@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { MdRefresh, MdAdd, MdDelete } from 'react-icons/md';
+import { MdAdd, MdDelete } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import {
   getLabCases, addLabCase, updateLabCase, deleteLabCase,
@@ -155,28 +155,18 @@ export const LabPage = () => {
 
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
+          {(isAdmin || canEdit) && (
+            <button
+              onClick={() => setShowForm(true)}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+            >
+              <MdAdd className="w-5 h-5" />
+              حالة جديدة
+            </button>
+          )}
           <div>
             <h1 className="text-4xl font-bold text-gray-900 mb-1">استقبال المعمل</h1>
             <p className="text-gray-500">إجمالي الحالات: {filtered.length}</p>
-          </div>
-          <div className="flex gap-3">
-            {(isAdmin || canEdit) && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all"
-              >
-                <MdAdd className="w-5 h-5" />
-                حالة جديدة
-              </button>
-            )}
-            <button
-              onClick={load}
-              disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-            >
-              <MdRefresh className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-              تحديث
-            </button>
           </div>
         </div>
 
