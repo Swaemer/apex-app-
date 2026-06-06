@@ -151,9 +151,10 @@ export const LabPage = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            {(isAdmin || canEdit) && (
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 text-center mb-4">استقبال المعمل</h1>
+          {(isAdmin || canEdit) && (
+            <div className="flex justify-start">
               <button
                 onClick={() => setShowForm(true)}
                 className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium flex items-center gap-2 hover:shadow-lg transition-all"
@@ -161,12 +162,8 @@ export const LabPage = () => {
                 <MdAdd className="w-5 h-5" />
                 حالة جديدة
               </button>
-            )}
-          </div>
-          <h1 className="text-4xl font-bold text-gray-900 text-center flex-1">استقبال المعمل</h1>
-          <div className="opacity-0 pointer-events-none">
-            <button className="px-6 py-3">placeholder</button>
-          </div>
+            </div>
+          )}
         </div>
 
         {/* Modal إضافة حالة جديدة */}
