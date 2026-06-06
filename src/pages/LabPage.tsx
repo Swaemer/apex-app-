@@ -180,95 +180,127 @@ export const LabPage = () => {
           </div>
         </div>
 
-        {/* نموذج إضافة حالة جديدة */}
+        {/* Modal إضافة حالة جديدة */}
         {showForm && (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">إضافة حالة جديدة</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">اسم المريض *</label>
-                <input
-                  type="text"
-                  value={newCase.patient_name}
-                  onChange={(e) => setNewCase((p) => ({ ...p, patient_name: e.target.value }))}
-                  placeholder="أدخل اسم المريض"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
-                />
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
+          >
+            <div
+              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* هيدر */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                <button
+                  onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
+                  className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                >✕</button>
+                <h2 className="text-lg font-bold text-gray-900">حالة جديدة</h2>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">رقم الملف</label>
-                <input
-                  type="text"
-                  value={newCase.file_number}
-                  onChange={(e) => setNewCase((p) => ({ ...p, file_number: e.target.value }))}
-                  placeholder="مثال: 1042"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">اسم الدكتور</label>
-                <select
-                  value={newCase.doctor_name}
-                  onChange={(e) => setNewCase((p) => ({ ...p, doctor_name: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
-                >
-                  <option value="">-- اختر الدكتور --</option>
-                  {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
-                </select>
-              </div>
-              <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-2">نوع الحالة</label>
-                <input
-                  type="text"
-                  value={newCase.case_type}
-                  onChange={(e) => setNewCase((p) => ({ ...p, case_type: e.target.value }))}
-                  placeholder="مثال: تركيب، جسر، ..."
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
-                />
-              </div>
-              {isAdmin && (
+
+              {/* حقول */}
+              <div className="px-6 py-5 space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    تاريخ الإضافة
-                    <span className="text-xs text-gray-400 mr-1">(اتركه فارغاً للتاريخ الحالي)</span>
-                  </label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">اسم المريض <span className="text-red-400">*</span></label>
                   <input
-                    type="date"
-                    value={newCase.sent_date}
-                    onChange={(e) => setNewCase((p) => ({ ...p, sent_date: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+                    type="text"
+                    value={newCase.patient_name}
+                    onChange={(e) => setNewCase((p) => ({ ...p, patient_name: e.target.value }))}
+                    placeholder="أدخل اسم المريض"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
                   />
                 </div>
-              )}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">عدد الأسنان</label>
-                <input
-                  type="number"
-                  value={newCase.teeth_count}
-                  onChange={(e) => setNewCase((p) => ({ ...p, teeth_count: e.target.value }))}
-                  placeholder="مثال: 4"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
-                />
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">رقم الملف</label>
+                    <input
+                      type="text"
+                      value={newCase.file_number}
+                      onChange={(e) => setNewCase((p) => ({ ...p, file_number: e.target.value }))}
+                      placeholder="مثال: 1042"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">عدد الأسنان</label>
+                    <input
+                      type="number"
+                      value={newCase.teeth_count}
+                      onChange={(e) => setNewCase((p) => ({ ...p, teeth_count: e.target.value }))}
+                      placeholder="مثال: 4"
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">اسم الدكتور</label>
+                  <select
+                    value={newCase.doctor_name}
+                    onChange={(e) => setNewCase((p) => ({ ...p, doctor_name: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                  >
+                    <option value="">-- اختر الدكتور --</option>
+                    {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">نوع الحالة</label>
+                  <input
+                    type="text"
+                    value={newCase.case_type}
+                    onChange={(e) => setNewCase((p) => ({ ...p, case_type: e.target.value }))}
+                    placeholder="مثال: تركيب، جسر، تاج..."
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">المعمل</label>
+                  <select
+                    value={newCase.lab_name}
+                    onChange={(e) => setNewCase((p) => ({ ...p, lab_name: e.target.value }))}
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                  >
+                    <option value="معمل سكاكا">معمل سكاكا</option>
+                    <option value="معمل بريدة">معمل بريدة</option>
+                  </select>
+                </div>
+
+                {isAdmin && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                      تاريخ الإرسال
+                      <span className="text-xs text-gray-400 font-normal mr-1">(اتركه فارغاً للتاريخ الحالي)</span>
+                    </label>
+                    <input
+                      type="date"
+                      value={newCase.sent_date}
+                      onChange={(e) => setNewCase((p) => ({ ...p, sent_date: e.target.value }))}
+                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    />
+                  </div>
+                )}
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">اسم المعمل</label>
-                <select
-                  value={newCase.lab_name}
-                  onChange={(e) => setNewCase((p) => ({ ...p, lab_name: e.target.value }))}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 focus:outline-none focus:bg-white focus:border-gray-300 transition-colors"
+
+              {/* أزرار */}
+              <div className="flex gap-3 px-6 pb-6">
+                <button
+                  onClick={handleAdd}
+                  className="flex-1 py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 transition-colors"
                 >
-                  <option value="معمل سكاكا">معمل سكاكا</option>
-                  <option value="معمل بريدة">معمل بريدة</option>
-                </select>
+                  إضافة الحالة
+                </button>
+                <button
+                  onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
+                  className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+                >
+                  إلغاء
+                </button>
               </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={handleAdd} className="px-6 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg font-medium hover:shadow-md transition-all">
-                إضافة
-              </button>
-              <button onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }} className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all">
-                إلغاء
-              </button>
             </div>
           </div>
         )}
