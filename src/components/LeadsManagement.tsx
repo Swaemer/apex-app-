@@ -378,24 +378,24 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
   const getStatusBadgeColor = (status: string) => {
     const colors: Record<string, string> = {
-      جديد:             'bg-blue-50 text-blue-700 border-blue-200',
-      متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
-      'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
-      'عميل بالفعل':    'bg-purple-50 text-purple-700 border-purple-200',
-      'لا يرغب':        'bg-gray-100 text-gray-500 border-gray-300',
+      جديد:             'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
+      متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700',
+      'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700',
+      'عميل بالفعل':    'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700',
+      'لا يرغب':        'bg-gray-100 text-gray-500 border-gray-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600',
     };
-    return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200';
+    return colors[status] || 'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600';
   };
 
   const getRowColor = (status: string) => {
     const colors: Record<string, string> = {
-      جديد:             'bg-blue-50 hover:bg-blue-100',
-      متابعة:           'bg-yellow-50 hover:bg-yellow-100',
-      'تم حجز الموعد':  'bg-green-50 hover:bg-green-100',
-      'عميل بالفعل':    'bg-purple-50 hover:bg-purple-100',
-      'لا يرغب':        'bg-gray-100 hover:bg-gray-200',
+      جديد:             'bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/10 dark:hover:bg-blue-900/20',
+      متابعة:           'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/20',
+      'تم حجز الموعد':  'bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/20',
+      'عميل بالفعل':    'bg-purple-50 hover:bg-purple-100 dark:bg-purple-900/10 dark:hover:bg-purple-900/20',
+      'لا يرغب':        'bg-gray-100 hover:bg-gray-200 dark:bg-gray-800/60 dark:hover:bg-gray-700/60',
     };
-    return colors[status] || 'bg-white hover:bg-gray-50';
+    return colors[status] || 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700';
   };
 
   const getInitials = (name: string) => {
@@ -467,13 +467,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     : [];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">إدارة العملاء المحتملين</h1>
-            <p className="text-gray-600">عدد العملاء: {filteredLeads.length}</p>
+            <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">إدارة العملاء المحتملين</h1>
+            <p className="text-gray-600 dark:text-gray-400">عدد العملاء: {filteredLeads.length}</p>
           </div>
           <div className="flex gap-3">
             {isAdmin && selectedIds.size > 0 && (
@@ -530,9 +530,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         {/* لوحة التوزيع التلقائي */}
         {showDistribute && (
-          <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-2">توزيع Leads تلقائياً</h2>
-            <p className="text-sm text-gray-500 mb-4">اختر الموظفين اللي تبي توزّع عليهم — الغائبين اشيل علامتهم</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-purple-100 dark:border-purple-900/50 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-2">توزيع Leads تلقائياً</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">اختر الموظفين اللي تبي توزّع عليهم — الغائبين اشيل علامتهم</p>
             <div className="flex flex-wrap gap-3 mb-5">
               {employeesList.map((name) => (
                 <label key={name} className="flex items-center gap-2 cursor-pointer select-none">
@@ -546,7 +546,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                     }
                     className="w-4 h-4 accent-purple-600"
                   />
-                  <span className="text-sm font-medium text-gray-800">{name}</span>
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{name}</span>
                 </label>
               ))}
             </div>
@@ -560,11 +560,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </button>
               <button
                 onClick={() => setShowDistribute(false)}
-                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
               >
                 إلغاء
               </button>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
                 سيتم توزيع {leads.filter((l) => !l.assigned_to || l.assigned_to === 'لم يتم التعيين').length} lead بدون مسؤول
               </p>
             </div>
@@ -574,9 +574,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         {/* لوحة توزيع المحدد */}
         {showDistributeSelected && selectedIds.size > 0 && (
-          <div className="bg-white rounded-2xl border border-purple-100 shadow-sm p-6 mb-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-1">توزيع {selectedIds.size} lead محدد</h2>
-            <p className="text-sm text-gray-500 mb-4">اختر الموظفين اللي تبي توزّع عليهم</p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-purple-100 dark:border-purple-900/50 shadow-sm p-6 mb-6">
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-1">توزيع {selectedIds.size} lead محدد</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">اختر الموظفين اللي تبي توزّع عليهم</p>
             <div className="flex flex-wrap gap-3 mb-5">
               {employeesList.map((name) => (
                 <label key={name} className="flex items-center gap-2 cursor-pointer select-none">
@@ -590,7 +590,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                     }
                     className="w-4 h-4 accent-purple-600"
                   />
-                  <span className="text-sm font-medium text-gray-800">{name}</span>
+                  <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{name}</span>
                 </label>
               ))}
             </div>
@@ -604,7 +604,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </button>
               <button
                 onClick={() => setShowDistributeSelected(false)}
-                className="px-6 py-2.5 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-all"
+                className="px-6 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
               >
                 إلغاء
               </button>
@@ -614,7 +614,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
         {/* Status Filters */}
         <div className="mb-6">
-          <p className="text-sm text-gray-600 mb-3 font-medium">حسب الحالة:</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">حسب الحالة:</p>
           <div className="flex gap-3 overflow-x-auto pb-2">
             {allStatuses.map((status) => (
               <button
@@ -623,7 +623,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                 className={`px-6 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                   filter === status
                     ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                    : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                 }`}
               >
                 {status}
@@ -635,7 +635,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         {/* User Filters — admin only */}
         {isAdmin && config.distribution?.enabled && assignedUsers.length > 1 && (
           <div className="mb-6">
-            <p className="text-sm text-gray-600 mb-3 font-medium">حسب المسؤول:</p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-medium">حسب المسؤول:</p>
             <div className="flex gap-3 overflow-x-auto pb-2">
               {assignedUsers.map((user) => (
                 <button
@@ -644,7 +644,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   className={`px-6 py-2.5 rounded-xl font-medium transition-all whitespace-nowrap ${
                     filterUser === user
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-white text-gray-700 border border-gray-200 hover:border-gray-300'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}
                 >
                   {user}
@@ -655,11 +655,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         )}
 
         {/* Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
+                <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
                   {isAdmin && (
                     <th className="px-4 py-4 text-center">
                       <input
@@ -670,17 +670,17 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       />
                     </th>
                   )}
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الاسم</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الجوال</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الخدمة المطلوبة</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المدينة</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الحالة</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">موعد الحجز</th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">الملاحظات</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الاسم</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الجوال</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الخدمة المطلوبة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">المدينة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الحالة</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">موعد الحجز</th>
+                  <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الملاحظات</th>
                   {isAdmin && config.distribution?.enabled && (
-                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700">المسؤول</th>
+                    <th className="px-6 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">المسؤول</th>
                   )}
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700">الإجراءات</th>
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
@@ -689,7 +689,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                     <tr
                       key={lead.id}
                       onClick={() => openLeadModal(lead)}
-                      className={`border-b border-gray-100 transition-colors cursor-pointer ${getRowColor(lead.status)}`}
+                      className={`border-b border-gray-100 dark:border-gray-700 transition-colors cursor-pointer ${getRowColor(lead.status)}`}
                     >
                       {isAdmin && (
                         <td className="px-4 py-4 text-center" onClick={(e) => e.stopPropagation()}>
@@ -712,12 +712,12 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           <div className={`w-9 h-9 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 select-none ${getAvatarColor(lead.name || '؟')}`}>
                             {getInitials(lead.name || '؟')}
                           </div>
-                          <span className="text-gray-900">{lead.name || '-'}</span>
+                          <span className="text-gray-900 dark:text-white">{lead.name || '-'}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900" dir="ltr">{lead.phone || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{lead.service || '-'}</td>
-                      <td className="px-6 py-4 text-sm text-gray-700">{lead.city || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-900 dark:text-gray-200" dir="ltr">{lead.phone || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lead.service || '-'}</td>
+                      <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lead.city || '-'}</td>
                       <td className="px-6 py-4 text-sm">
                         <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusBadgeColor(lead.status)}`}>
                           {lead.status}
@@ -737,8 +737,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                           <span className="text-gray-300 text-xs">—</span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-600 max-w-[200px] truncate">
-                        {lead.notes || <span className="text-gray-300">—</span>}
+                      <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 max-w-[200px] truncate">
+                        {lead.notes || <span className="text-gray-300 dark:text-gray-600">—</span>}
                       </td>
                       {isAdmin && config.distribution?.enabled && (
                         <td className="px-6 py-4 text-sm" onClick={(e) => e.stopPropagation()}>
@@ -746,7 +746,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                             <select
                               value={lead.assigned_to || ''}
                               onChange={(e) => handleAssignmentChange(lead.id, e.target.value)}
-                              className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-300"
+                              className="px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-semibold border border-purple-200 dark:border-purple-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-300"
                             >
                               <option value="">-- اختر --</option>
                               {employeesList.map((name) => (
@@ -754,7 +754,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                               ))}
                             </select>
                           ) : (
-                            <span className="inline-block px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg text-xs font-semibold border border-purple-200">
+                            <span className="inline-block px-3 py-1.5 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg text-xs font-semibold border border-purple-200 dark:border-purple-700">
                               {lead.assigned_to || 'لم يتم التعيين'}
                             </span>
                           )}
@@ -797,19 +797,19 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={safePage === 1}
-              className="px-5 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-all"
+              className="px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-all"
             >
               السابق
             </button>
-            <span className="text-sm text-gray-600 font-medium">
+            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
               صفحة {safePage} من {totalPages}
-              <span className="text-gray-400 mx-2">·</span>
+              <span className="text-gray-400 dark:text-gray-500 mx-2">·</span>
               {filteredLeads.length} سجل
             </span>
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={safePage === totalPages}
-              className="px-5 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 transition-all"
+              className="px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-all"
             >
               التالي
             </button>
@@ -822,18 +822,18 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           config.distribution.users.length > 0 &&
           leads.length > 0 && (
             <div className="mt-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">توزيع الـ Leads على الفريق</h2>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">توزيع الـ Leads على الفريق</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {config.distribution.users.map((user) => {
                   const userLeads = leads.filter((l) => l.assigned_to === user.name);
                   return (
                     <div
                       key={user.id}
-                      className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-right"
+                      className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-6 text-right"
                     >
-                      <p className="text-gray-600 text-sm mb-2">{user.name}</p>
-                      <p className="text-3xl font-bold text-purple-600">{userLeads.length}</p>
-                      <p className="text-xs text-gray-500 mt-3">
+                      <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">{user.name}</p>
+                      <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">{userLeads.length}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-3">
                         جديد: {userLeads.filter((l) => l.status === 'جديد').length}
                       </p>
                     </div>
@@ -852,7 +852,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         >
           <div
             dir="rtl"
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 overflow-y-auto max-h-[90vh]"
+            className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 p-6 overflow-y-auto max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
@@ -862,13 +862,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   {getInitials(selectedLead.name || '؟')}
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-gray-900">{selectedLead.name}</h2>
-                  <p className="text-sm text-blue-600 mt-0.5 font-medium" dir="ltr">{selectedLead.phone}</p>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">{selectedLead.name}</h2>
+                  <p className="text-sm text-blue-600 dark:text-blue-400 mt-0.5 font-medium" dir="ltr">{selectedLead.phone}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl font-bold leading-none flex-shrink-0"
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold leading-none flex-shrink-0"
               >
                 ✕
               </button>
@@ -877,41 +877,41 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             {/* Info chips */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               {selectedLead.service && (
-                <div className="bg-blue-50 rounded-xl p-3">
-                  <p className="text-xs text-blue-400 mb-1">الخدمة</p>
-                  <p className="text-sm font-semibold text-blue-800">{selectedLead.service}</p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-3">
+                  <p className="text-xs text-blue-400 dark:text-blue-500 mb-1">الخدمة</p>
+                  <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">{selectedLead.service}</p>
                 </div>
               )}
               {selectedLead.city && (
-                <div className="bg-green-50 rounded-xl p-3">
-                  <p className="text-xs text-green-400 mb-1">المدينة</p>
-                  <p className="text-sm font-semibold text-green-800">{selectedLead.city}</p>
+                <div className="bg-green-50 dark:bg-green-900/20 rounded-xl p-3">
+                  <p className="text-xs text-green-400 dark:text-green-500 mb-1">المدينة</p>
+                  <p className="text-sm font-semibold text-green-800 dark:text-green-300">{selectedLead.city}</p>
                 </div>
               )}
               {selectedLead.assigned_to && (
-                <div className="bg-purple-50 rounded-xl p-3">
-                  <p className="text-xs text-purple-400 mb-1">مسؤول</p>
-                  <p className="text-sm font-semibold text-purple-800">{selectedLead.assigned_to}</p>
+                <div className="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-3">
+                  <p className="text-xs text-purple-400 dark:text-purple-500 mb-1">مسؤول</p>
+                  <p className="text-sm font-semibold text-purple-800 dark:text-purple-300">{selectedLead.assigned_to}</p>
                 </div>
               )}
               {selectedLead.doctor && (
-                <div className="bg-cyan-50 rounded-xl p-3">
-                  <p className="text-xs text-cyan-400 mb-1">الطبيب</p>
-                  <p className="text-sm font-semibold text-cyan-800">{selectedLead.doctor}</p>
+                <div className="bg-cyan-50 dark:bg-cyan-900/20 rounded-xl p-3">
+                  <p className="text-xs text-cyan-400 dark:text-cyan-500 mb-1">الطبيب</p>
+                  <p className="text-sm font-semibold text-cyan-800 dark:text-cyan-300">{selectedLead.doctor}</p>
                 </div>
               )}
-              <div className="bg-gray-50 rounded-xl p-3">
-                <p className="text-xs text-gray-400 mb-1">تاريخ الإضافة</p>
-                <p className="text-sm font-semibold text-gray-700">
+              <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">تاريخ الإضافة</p>
+                <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {new Date(selectedLead.created_at).toLocaleDateString('ar-SA', {
                     year: 'numeric', month: 'short', day: 'numeric',
                   })}
                 </p>
               </div>
               {selectedLead.updated_at && (
-                <div className="bg-gray-50 rounded-xl p-3">
-                  <p className="text-xs text-gray-400 mb-1">آخر تحديث</p>
-                  <p className="text-sm font-semibold text-gray-700">
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">آخر تحديث</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                     {new Date(selectedLead.updated_at).toLocaleDateString('ar-SA', {
                       year: 'numeric', month: 'short', day: 'numeric',
                     })}
@@ -922,7 +922,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
             {/* Status buttons */}
             <div className="mb-5">
-              <label className="block text-sm font-bold text-gray-700 mb-2">الحالة</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">الحالة</label>
               <div className="flex flex-wrap gap-2">
                 {config.statuses.map((s) => (
                   <button
@@ -930,8 +930,8 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                     onClick={() => setModalStatus(s)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
                       modalStatus === s
-                        ? getStatusBadgeColor(s) + ' ring-2 ring-offset-1 ring-blue-300'
-                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                        ? getStatusBadgeColor(s) + ' ring-2 ring-offset-1 ring-blue-300 dark:ring-offset-gray-800'
+                        : 'bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600'
                     }`}
                   >
                     {s}
@@ -944,18 +944,18 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             {modalStatus === 'تم حجز الموعد' && (
               <div className="mb-5 space-y-3">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">موعد الحجز</label>
+                  <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">موعد الحجز</label>
                   <div className="flex gap-2">
                     <input
                       type="date"
                       value={modalDate}
                       onChange={(e) => setModalDate(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                      className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:border-blue-400"
                     />
                     <select
                       value={modalHour}
                       onChange={(e) => setModalHour(e.target.value)}
-                      className="px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400"
+                      className="px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm bg-white dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:border-blue-400"
                     >
                       <option value="">-- الساعة --</option>
                       {Array.from({ length: 14 }, (_, i) => {
@@ -972,11 +972,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                 </div>
                 {doctorsList.length > 0 && (
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-2">الطبيب</label>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">الطبيب</label>
                     <select
                       value={modalDoctor}
                       onChange={(e) => setModalDoctor(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-blue-400 bg-white"
+                      className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:border-blue-400 bg-white dark:bg-gray-700 dark:text-gray-200"
                     >
                       <option value="">-- اختر الطبيب --</option>
                       {doctorsList.map((doc) => (
@@ -990,13 +990,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
             {/* Notes */}
             <div className="mb-6">
-              <label className="block text-sm font-bold text-gray-700 mb-2">ملاحظات</label>
+              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">ملاحظات</label>
               <textarea
                 value={modalNotes}
                 onChange={(e) => setModalNotes(e.target.value)}
                 placeholder="أضف ملاحظة..."
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm text-gray-700 focus:outline-none focus:border-blue-400 resize-none"
+                className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 focus:outline-none focus:border-blue-400 resize-none"
               />
             </div>
 
@@ -1011,7 +1011,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               </button>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+                className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               >
                 إلغاء
               </button>

@@ -147,12 +147,12 @@ export const LabPage = () => {
     d ? new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 p-8" dir="rtl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8" dir="rtl">
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 text-center mb-4">استقبال المعمل</h1>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white text-center mb-4">استقبال المعمل</h1>
           {(isAdmin || canEdit) && (
             <div className="flex justify-start">
               <button
@@ -174,16 +174,16 @@ export const LabPage = () => {
           >
             <div
               dir="rtl"
-              className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
               {/* هيدر */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
                 <button
                   onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
-                  className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold"
                 >✕</button>
-                <h2 className="text-lg font-bold text-gray-900">حالة جديدة</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">حالة جديدة</h2>
               </div>
 
               {/* حقول */}
@@ -195,7 +195,7 @@ export const LabPage = () => {
                     value={newCase.patient_name}
                     onChange={(e) => setNewCase((p) => ({ ...p, patient_name: e.target.value }))}
                     placeholder="أدخل اسم المريض"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                   />
                 </div>
 
@@ -207,7 +207,7 @@ export const LabPage = () => {
                       value={newCase.file_number}
                       onChange={(e) => setNewCase((p) => ({ ...p, file_number: e.target.value }))}
                       placeholder="مثال: 1042"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                     />
                   </div>
                   <div>
@@ -217,7 +217,7 @@ export const LabPage = () => {
                       value={newCase.teeth_count}
                       onChange={(e) => setNewCase((p) => ({ ...p, teeth_count: e.target.value }))}
                       placeholder="مثال: 4"
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                     />
                   </div>
                 </div>
@@ -227,7 +227,7 @@ export const LabPage = () => {
                   <select
                     value={newCase.doctor_name}
                     onChange={(e) => setNewCase((p) => ({ ...p, doctor_name: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                   >
                     <option value="">-- اختر الدكتور --</option>
                     {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
@@ -241,7 +241,7 @@ export const LabPage = () => {
                     value={newCase.case_type}
                     onChange={(e) => setNewCase((p) => ({ ...p, case_type: e.target.value }))}
                     placeholder="مثال: تركيب، جسر، تاج..."
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                   />
                 </div>
 
@@ -250,7 +250,7 @@ export const LabPage = () => {
                   <select
                     value={newCase.lab_name}
                     onChange={(e) => setNewCase((p) => ({ ...p, lab_name: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                    className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                   >
                     <option value="معمل سكاكا">معمل سكاكا</option>
                     <option value="معمل بريدة">معمل بريدة</option>
@@ -267,7 +267,7 @@ export const LabPage = () => {
                       type="date"
                       value={newCase.sent_date}
                       onChange={(e) => setNewCase((p) => ({ ...p, sent_date: e.target.value }))}
-                      className="w-full px-4 py-2.5 border border-gray-200 rounded-xl bg-gray-50 focus:outline-none focus:bg-white focus:border-indigo-300 transition-colors text-sm"
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-indigo-300 transition-colors text-sm"
                     />
                   </div>
                 )}
@@ -283,7 +283,7 @@ export const LabPage = () => {
                 </button>
                 <button
                   onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
-                  className="flex-1 py-2.5 bg-gray-100 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-200 transition-colors"
+                  className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                 >
                   إلغاء
                 </button>
@@ -297,14 +297,14 @@ export const LabPage = () => {
           {/* فلتر الطبيب */}
           {activeDoctors.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-gray-500 mb-2">الطبيب</p>
+              <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">الطبيب</p>
               <div className="flex gap-2 flex-wrap">
                 {['الكل', ...activeDoctors].map((d) => (
                   <button key={d} onClick={() => setFilterDoctor(d)}
                     className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
                       filterDoctor === d
                         ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}>
                     {d}
                   </button>
@@ -315,14 +315,14 @@ export const LabPage = () => {
 
           {/* فلتر المعمل */}
           <div>
-            <p className="text-xs font-medium text-gray-500 mb-2">المعمل</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">المعمل</p>
             <div className="flex gap-2 flex-wrap">
               {['الكل', 'معمل سكاكا', 'معمل بريدة'].map((l) => (
                 <button key={l} onClick={() => setFilterLab(l)}
                   className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
                     filterLab === l
                       ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}>
                   {l}
                 </button>
@@ -331,16 +331,16 @@ export const LabPage = () => {
           </div>
         </div>
 
-        <p className="text-gray-500 text-sm mb-4">إجمالي الحالات: {filtered.length}</p>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">إجمالي الحالات: {filtered.length}</p>
 
         {/* Kanban */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {STATUSES.map((status) => {
             const colCases = filtered.filter((c) => c.status === status);
             const colStyle = {
-              'في المعمل':   { header: 'bg-yellow-100 border-yellow-200', title: 'text-yellow-800', count: 'bg-yellow-200 text-yellow-700', col: 'border-yellow-200 bg-yellow-50/40' },
-              'تم الاستلام': { header: 'bg-green-100 border-green-200',  title: 'text-green-800',  count: 'bg-green-200 text-green-700',  col: 'border-green-200 bg-green-50/40'  },
-              'أعيد للمعمل': { header: 'bg-red-100 border-red-200',      title: 'text-red-800',    count: 'bg-red-200 text-red-700',      col: 'border-red-200 bg-red-50/40'      },
+              'في المعمل':   { header: 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800', title: 'text-yellow-800 dark:text-yellow-300', count: 'bg-yellow-200 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200', col: 'border-yellow-200 dark:border-yellow-800 bg-yellow-50/40 dark:bg-yellow-900/10' },
+              'تم الاستلام': { header: 'bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800',  title: 'text-green-800 dark:text-green-300',  count: 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200',  col: 'border-green-200 dark:border-green-800 bg-green-50/40 dark:bg-green-900/10'  },
+              'أعيد للمعمل': { header: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800',      title: 'text-red-800 dark:text-red-300',    count: 'bg-red-200 dark:bg-red-800 text-red-700 dark:text-red-200',      col: 'border-red-200 dark:border-red-800 bg-red-50/40 dark:bg-red-900/10'      },
             }[status]!;
 
             return (
@@ -366,15 +366,15 @@ export const LabPage = () => {
                 {/* البطاقات */}
                 <div className="flex-1 p-3 space-y-3 min-h-[160px]">
                   {colCases.length === 0 ? (
-                    <p className="text-center text-gray-400 text-xs pt-8">لا توجد حالات</p>
+                    <p className="text-center text-gray-400 dark:text-gray-500 text-xs pt-8">لا توجد حالات</p>
                   ) : colCases.map((c) => (
                     <div
                       key={c.id}
                       draggable={!!(isAdmin || canEdit) && editingId !== c.id}
                       onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(c.id)); setDraggingId(c.id); }}
                       onDragEnd={() => { setDraggingId(null); setDragOverStatus(null); }}
-                      className={`bg-white rounded-xl border shadow-sm p-3 transition-all
-                        ${editingId === c.id ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-100 hover:shadow-md'}
+                      className={`bg-white dark:bg-gray-800 rounded-xl border shadow-sm p-3 transition-all
+                        ${editingId === c.id ? 'border-indigo-300 dark:border-indigo-600 ring-1 ring-indigo-200 dark:ring-indigo-700' : 'border-gray-100 dark:border-gray-700 hover:shadow-md'}
                         ${(isAdmin || canEdit) && editingId !== c.id ? 'cursor-grab active:cursor-grabbing' : ''}
                         ${draggingId === c.id ? 'opacity-40 scale-95' : ''}
                       `}
@@ -385,27 +385,27 @@ export const LabPage = () => {
                         <div className="space-y-2">
                           <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
                             placeholder="اسم المريض"
-                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white font-medium" />
+                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200 font-medium" />
                           <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
                             placeholder="رقم الملف"
-                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
                           <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white">
+                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200">
                             <option value="">— الدكتور —</option>
                             {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
                           </select>
                           <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
                             placeholder="نوع الحالة"
-                            className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
                           <div className="grid grid-cols-2 gap-2">
                             <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
-                              className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white">
+                              className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200">
                               <option value="معمل سكاكا">معمل سكاكا</option>
                               <option value="معمل بريدة">معمل بريدة</option>
                             </select>
                             <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
                               placeholder="عدد الأسنان"
-                              className="w-full px-2 py-1.5 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
+                              className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
                           </div>
                           <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
                             className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
@@ -434,7 +434,7 @@ export const LabPage = () => {
                               {saving[c.id] ? '...' : 'حفظ'}
                             </button>
                             <button onClick={() => handleCancelEdit(c.id)}
-                              className="flex-1 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors">
+                              className="flex-1 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                               إلغاء
                             </button>
                           </div>
@@ -444,13 +444,13 @@ export const LabPage = () => {
                         <>
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <p className="font-bold text-gray-900 text-sm">{c.patient_name}</p>
-                              {c.file_number && <p className="text-xs text-gray-400 mt-0.5">ملف: {c.file_number}</p>}
+                              <p className="font-bold text-gray-900 dark:text-white text-sm">{c.patient_name}</p>
+                              {c.file_number && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">ملف: {c.file_number}</p>}
                             </div>
                             <div className="flex items-center gap-1.5 flex-shrink-0">
                               {(isAdmin || canEdit) && (
                                 <button onClick={() => setEditingId(c.id)}
-                                  className="text-xs text-indigo-500 hover:text-indigo-700 font-medium transition-colors">
+                                  className="text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">
                                   تعديل
                                 </button>
                               )}
@@ -464,29 +464,29 @@ export const LabPage = () => {
 
                           <div className="space-y-1">
                             {c.doctor_name && (
-                              <p className="text-xs text-gray-600">
-                                <span className="text-gray-400">الدكتور: </span>{c.doctor_name}
+                              <p className="text-xs text-gray-600 dark:text-gray-300">
+                                <span className="text-gray-400 dark:text-gray-500">الدكتور: </span>{c.doctor_name}
                               </p>
                             )}
                             {c.case_type && (
-                              <p className="text-xs text-gray-600">
-                                <span className="text-gray-400">نوع الحالة: </span>{c.case_type}
+                              <p className="text-xs text-gray-600 dark:text-gray-300">
+                                <span className="text-gray-400 dark:text-gray-500">نوع الحالة: </span>{c.case_type}
                               </p>
                             )}
                             {c.teeth_count && (
-                              <p className="text-xs text-gray-600">
-                                <span className="text-gray-400">عدد الأسنان: </span>{c.teeth_count}
+                              <p className="text-xs text-gray-600 dark:text-gray-300">
+                                <span className="text-gray-400 dark:text-gray-500">عدد الأسنان: </span>{c.teeth_count}
                               </p>
                             )}
                           </div>
 
-                          <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-1">
-                            <div className="text-xs text-gray-400 space-y-0.5">
+                          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between flex-wrap gap-1">
+                            <div className="text-xs text-gray-400 dark:text-gray-500 space-y-0.5">
                               {c.sent_date && <p>خروج: {formatDate(c.sent_date)}</p>}
                               {c.received_date && <p>استلام: {formatDate(c.received_date)}</p>}
                               {c.return_date && <p>إعادة: {formatDate(c.return_date)}</p>}
                             </div>
-                            <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
+                            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
                           </div>
                         </>
                       )}

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
+import { DarkModeProvider } from './context/DarkModeContext';
 import { Navbar } from './components/Navbar';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthPage } from './pages/AuthPage';
@@ -15,6 +16,7 @@ import { AnnouncementBanner } from './components/AnnouncementBanner';
 
 function App() {
   return (
+    <DarkModeProvider>
     <AuthProvider>
       <Toaster position="top-right" />
       <BrowserRouter>
@@ -35,6 +37,7 @@ function App() {
         </main>
       </BrowserRouter>
     </AuthProvider>
+    </DarkModeProvider>
   );
 }
 
