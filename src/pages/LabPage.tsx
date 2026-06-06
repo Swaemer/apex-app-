@@ -112,9 +112,8 @@ export const LabPage = () => {
     }
   };
 
-  const handleDragDrop = async (newStatus: string) => {
-    if (!draggingId) return;
-    const c = cases.find((x) => x.id === draggingId);
+  const handleDragDrop = async (newStatus: string, caseId: number) => {
+    const c = cases.find((x) => x.id === caseId);
     if (!c || c.status === newStatus) return;
 
     const today = new Date().toISOString().split('T')[0];
@@ -122,9 +121,9 @@ export const LabPage = () => {
     if (newStatus === 'تم الاستلام') update.received_date = today;
     else if (newStatus === 'أعيد للمعمل') update.return_date = today;
 
-    setCases((prev) => prev.map((x) => x.id === draggingId ? { ...x, ...update } : x));
+    setCases((prev) => prev.map((x) => x.id === caseId ? { ...x, ...update } : x));
     try {
-      await updateLabCase(draggingId, update);
+      await updateLabCase(caseId, update);
       toast.success('تم تغيير الحالة');
     } catch {
       toast.error('خطأ في تحديث الحالة');
@@ -328,8 +327,14 @@ export const LabPage = () => {
                 key={status}
                 className={`rounded-2xl border overflow-hidden flex flex-col transition-all ${colStyle.col} ${dragOverStatus === status ? 'ring-2 ring-indigo-400 scale-[1.01]' : ''}`}
                 onDragOver={(e) => { e.preventDefault(); setDragOverStatus(status); }}
-                onDragLeave={() => setDragOverStatus(null)}
-                onDrop={() => { handleDragDrop(status); setDraggingId(null); setDragOverStatus(null); }}
+                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverStatus(null); }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const id = parseInt(e.dataTransfer.getData('text/plain'));
+                  if (id) handleDragDrop(status, id);
+                  setDraggingId(null);
+                  setDragOverStatus(null);
+                }}
               >
                 {/* عنوان العمود */}
                 <div className={`flex items-center justify-between px-4 py-3 border-b ${colStyle.header}`}>
@@ -345,7 +350,7 @@ export const LabPage = () => {
                     <div
                       key={c.id}
                       draggable={!!(isAdmin || canEdit) && editingId !== c.id}
-                      onDragStart={() => setDraggingId(c.id)}
+                      onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(c.id)); setDraggingId(c.id); }}
                       onDragEnd={() => { setDraggingId(null); setDragOverStatus(null); }}
                       className={`bg-white rounded-xl border shadow-sm p-3 transition-all
                         ${editingId === c.id ? 'border-indigo-300 ring-1 ring-indigo-200' : 'border-gray-100 hover:shadow-md'}
