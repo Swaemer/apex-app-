@@ -462,8 +462,8 @@ export const LabPage = () => {
                           <div className="mt-2 pt-2 border-t border-gray-100 flex items-center justify-between flex-wrap gap-1">
                             <div className="text-xs text-gray-400 space-y-0.5">
                               {c.sent_date && <p>خروج: {formatDate(c.sent_date)}</p>}
-                              {c.received_date && <p>استلام: {new Date(c.received_date).toLocaleDateString('ar-SA')}</p>}
-                              {c.return_date && <p>إعادة: {new Date(c.return_date).toLocaleDateString('ar-SA')}</p>}
+                              {c.received_date && <p>استلام: {formatDate(c.received_date)}</p>}
+                              {c.return_date && <p>إعادة: {formatDate(c.return_date)}</p>}
                             </div>
                             <span className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
                           </div>
