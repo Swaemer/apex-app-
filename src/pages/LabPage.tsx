@@ -151,18 +151,22 @@ export const LabPage = () => {
       <div className="max-w-7xl mx-auto">
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-1">استقبال المعمل</h1>
-          <p className="text-gray-500 mb-4">إجمالي الحالات: {filtered.length}</p>
-          {(isAdmin || canEdit) && (
-            <button
-              onClick={() => setShowForm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium flex items-center gap-2 hover:shadow-lg transition-all"
-            >
-              <MdAdd className="w-5 h-5" />
-              حالة جديدة
-            </button>
-          )}
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            {(isAdmin || canEdit) && (
+              <button
+                onClick={() => setShowForm(true)}
+                className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl font-medium flex items-center gap-2 hover:shadow-lg transition-all"
+              >
+                <MdAdd className="w-5 h-5" />
+                حالة جديدة
+              </button>
+            )}
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 text-center flex-1">استقبال المعمل</h1>
+          <div className="opacity-0 pointer-events-none">
+            <button className="px-6 py-3">placeholder</button>
+          </div>
         </div>
 
         {/* Modal إضافة حالة جديدة */}
@@ -329,6 +333,8 @@ export const LabPage = () => {
             </div>
           </div>
         </div>
+
+        <p className="text-gray-500 text-sm mb-4">إجمالي الحالات: {filtered.length}</p>
 
         {/* Kanban */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
