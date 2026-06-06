@@ -187,6 +187,7 @@ export const LabPage = () => {
             onClick={() => { setShowForm(false); setNewCase({ patient_name: '', file_number: '', doctor_name: '', case_type: '', teeth_count: '', lab_name: 'معمل سكاكا', sent_date: '' }); }}
           >
             <div
+              dir="rtl"
               className="bg-white rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]"
               onClick={(e) => e.stopPropagation()}
             >
