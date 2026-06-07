@@ -719,7 +719,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lead.service || '-'}</td>
                       <td className="px-6 py-4 text-sm text-gray-700 dark:text-gray-300">{lead.city || '-'}</td>
                       <td className="px-6 py-4 text-sm">
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${getStatusBadgeColor(lead.status)}`}>
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border whitespace-nowrap ${getStatusBadgeColor(lead.status)}`}>
                           {lead.status}
                         </span>
                       </td>
