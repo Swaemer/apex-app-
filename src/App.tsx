@@ -12,6 +12,7 @@ import { LeavePage } from './pages/LeavePage';
 import { OffersPage } from './pages/OffersPage';
 import { AppointmentsPage } from './pages/AppointmentsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
         <main className="pt-24">
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
             <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
             <Route path="/leads" element={<ProtectedRoute><LeadsPage /></ProtectedRoute>} />
             <Route path="/lab" element={<ProtectedRoute><LabPage /></ProtectedRoute>} />

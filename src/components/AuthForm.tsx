@@ -10,7 +10,7 @@ interface AuthFormData {
   confirmPassword?: string;
 }
 
-type AuthMode = 'signup' | 'login';
+type AuthMode = 'signup' | 'login' | 'forgot';
 
 export const AuthForm = () => {
   const navigate = useNavigate();
@@ -56,7 +56,36 @@ export const AuthForm = () => {
     return true;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!formData.email) {
+      toast.error('يرجى إدخال البريد الإلكتروني');
+      return;
+    }
+    if (!validateEmail(formData.email)) {
+      toast.error('البريد الإلكتروني غير صحيح');
+      return;
+    }
+    setLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) {
+        toast.error(`خطأ: ${error.message}`);
+      } else {
+        toast.success('تم إرسال رابط الاستعادة — تحقق من بريدك الإلكتروني');
+        setFormData((prev) => ({ ...prev, email: '' }));
+        setMode('login');
+      }
+    } catch {
+      toast.error('حدث خطأ غير متوقع');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
     setLoading(true);
@@ -119,6 +148,48 @@ export const AuthForm = () => {
   const inputClass =
     'w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-gray-300 dark:focus:border-gray-500 focus:ring-2 focus:ring-slate-200 dark:focus:ring-slate-700 transition-colors';
 
+  if (mode === 'forgot') {
+    return (
+      <div className="w-full max-w-md mx-auto p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">استعادة كلمة المرور</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400">أدخل بريدك الإلكتروني وسنرسل لك رابط الاستعادة</p>
+        </div>
+
+        <form onSubmit={handleForgotPassword} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5">البريد الإلكتروني</label>
+            <input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              placeholder="أدخل بريدك الإلكتروني"
+              className={inputClass}
+              autoFocus
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2.5 px-4 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 disabled:from-gray-400 disabled:to-gray-400 text-white font-medium rounded-lg transition-all shadow-sm hover:shadow-md"
+          >
+            {loading ? 'جاري الإرسال...' : 'إرسال رابط الاستعادة'}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setFormData((prev) => ({ ...prev, email: '' })); }}
+            className="w-full py-2.5 px-4 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+          >
+            العودة لتسجيل الدخول
+          </button>
+        </form>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md mx-auto p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
       <div className="flex gap-2 mb-8">
@@ -165,7 +236,18 @@ export const AuthForm = () => {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2.5">كلمة المرور</label>
+          <div className="flex items-center justify-between mb-2.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">كلمة المرور</label>
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => setMode('forgot')}
+                className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+              >
+                نسيت كلمة المرور؟
+              </button>
+            )}
+          </div>
           <input
             type="password"
             name="password"
