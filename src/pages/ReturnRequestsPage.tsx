@@ -447,10 +447,10 @@ export const ReturnRequestsPage = () => {
                 <div className="rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 p-4">
                   <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">معاينة رسالة الواتساب</p>
                   <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
-                    {buildWhatsAppMessage(selectedRequest)}
+                    {buildWhatsAppMessage({ ...selectedRequest, ...editForm })}
                   </pre>
                   <button
-                    onClick={() => handleCopyWhatsApp(selectedRequest)}
+                    onClick={() => handleCopyWhatsApp({ ...selectedRequest, ...editForm })}
                     className="mt-3 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
                   >
                     <MdContentCopy className="w-4 h-4" />
