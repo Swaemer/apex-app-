@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { DarkModeProvider } from './context/DarkModeContext';
@@ -16,6 +16,12 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ReturnRequestsPage } from './pages/ReturnRequestsPage';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
 
+const Layout = ({ children }: { children: React.ReactNode }) => {
+  const location = useLocation();
+  const noSidebar = ['/auth', '/reset-password'].includes(location.pathname);
+  return <main className={noSidebar ? '' : 'pr-56'}>{children}</main>;
+};
+
 function App() {
   return (
     <DarkModeProvider>
@@ -24,7 +30,7 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <AnnouncementBanner />
-        <main className="pr-56">
+        <Layout>
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />
@@ -38,7 +44,7 @@ function App() {
             <Route path="/return-requests" element={<ProtectedRoute><ReturnRequestsPage /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
           </Routes>
-        </main>
+        </Layout>
       </BrowserRouter>
     </AuthProvider>
     </DarkModeProvider>

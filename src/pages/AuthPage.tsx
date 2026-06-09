@@ -5,6 +5,7 @@ export const AuthPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 flex flex-col items-center justify-center px-4 py-8" dir="rtl">
       <div className="w-full max-w-md">
         <div className="text-center mb-12">
+          <img src="/logosa.svg" alt="logo" className="w-24 h-24 object-contain mx-auto mb-4" />
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-5.5">تسويق صفوة أمينة</h1>
           <p className="text-gray-500 dark:text-gray-400 text-base">الكل يعالج بس مو الكل يعرف يسوق</p>
         </div>
