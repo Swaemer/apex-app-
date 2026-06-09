@@ -98,6 +98,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       const dataRows = rows.slice(1);
 
       const phoneIdMap = await getLeadPhoneIdMap();
+      const existingIdSet = new Set(phoneIdMap.values());
 
       const seenPhones = new Set<string>();
       const toAdd: Array<{ lead: NewLead; sheetRow: number }> = [];
@@ -105,10 +106,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       let skipped = 0;
 
       dataRows.forEach((cells, index) => {
-        // إذا في ID بالشيت = استُورد سابقاً ومكتوب ID
         if (config.idColumnIndex !== undefined) {
           const existingId = (cells[config.idColumnIndex] ?? '').toString().trim();
-          if (existingId) { skipped++; return; }
+          if (existingId) {
+            const idNum = parseInt(existingId);
+            if (!isNaN(idNum) && existingIdSet.has(idNum)) {
+              skipped++; return; // موجود بالـ DB فعلاً
+            }
+            // ID بالشيت لكن مو موجود بالـ DB → أعد الاستيراد
+          }
         }
 
         const lead: Partial<NewLead> = {};
@@ -191,9 +197,9 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
       await loadLeads();
 
       if (inserted.length === 0) {
-        toast('لا توجد سجلات جديدة — كل البيانات موجودة بالفعل');
+        toast(`لا توجد سجلات جديدة — تم تجاهل ${skipped} سجل موجود بالفعل`, { duration: 4000 });
       } else {
-        toast.success(`تمت إضافة ${inserted.length} جديد${skipped > 0 ? ` · تم تجاهل ${skipped} موجود` : ''}`);
+        toast.success(`تم استيراد ${inserted.length} سجل جديد${skipped > 0 ? ` · تجاهل ${skipped} موجود` : ''}`, { duration: 5000 });
       }
     } catch (error) {
       const msg =
