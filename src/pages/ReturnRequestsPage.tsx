@@ -54,6 +54,7 @@ export const ReturnRequestsPage = () => {
     reason: '',
     doctor_name: null,
     status: 'طلب جديد',
+    status_changed_at: null,
   });
 
   const load = async () => {
@@ -117,6 +118,7 @@ export const ReturnRequestsPage = () => {
       reason: r.reason,
       doctor_name: r.doctor_name,
       status: r.status,
+      status_changed_at: r.status_changed_at,
     });
   };
 

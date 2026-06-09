@@ -14,7 +14,7 @@ export interface ReturnRequest {
   status_changed_at: string | null;
 }
 
-export type NewReturnRequest = Omit<ReturnRequest, 'id' | 'created_at'>;
+export type NewReturnRequest = Omit<ReturnRequest, 'id' | 'created_at' | 'status_changed_at'>;
 
 export const getReturnRequests = async (): Promise<ReturnRequest[]> => {
   const { data, error } = await supabase
