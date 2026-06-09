@@ -125,6 +125,8 @@ export const ReturnRequestsPage = () => {
     if (!editForm.patient_name.trim()) { toast.error('أدخل اسم الراجع'); return; }
     if (!editForm.reason.trim()) { toast.error('أدخل سبب الاسترجاع'); return; }
     try {
+      const statusChanged = editForm.status !== selectedRequest.status;
+      const newStatusChangedAt = statusChanged ? new Date().toISOString() : selectedRequest.status_changed_at;
       await updateReturnRequest(selectedRequest.id, {
         patient_name: editForm.patient_name.trim(),
         phone: editForm.phone?.trim() || null,
@@ -133,11 +135,17 @@ export const ReturnRequestsPage = () => {
         reason: editForm.reason.trim(),
         doctor_name: editForm.doctor_name || null,
         status: editForm.status,
-      });
-      setRequests((prev) => prev.map((r) => r.id === selectedRequest.id ? { ...r, ...editForm } : r));
+      }, selectedRequest.status);
+      setRequests((prev) => prev.map((r) => r.id === selectedRequest.id ? { ...r, ...editForm, status_changed_at: newStatusChangedAt ?? null } : r));
       toast.success('تم تحديث الطلب');
       setSelectedRequest(null);
     } catch { toast.error('خطأ في التحديث'); }
+  };
+
+  const daysSince = (dateStr: string | null) => {
+    if (!dateStr) return null;
+    const diff = Date.now() - new Date(dateStr).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
   const buildWhatsAppMessage = (r: ReturnRequest) => {
@@ -441,6 +449,11 @@ export const ReturnRequestsPage = () => {
 
                 <p className="text-xs text-gray-400 dark:text-gray-500">
                   تاريخ الإضافة: {new Date(selectedRequest.created_at).toLocaleDateString('ar-SA')}
+                  {editForm.status === 'قيد المراجعة' && selectedRequest.status_changed_at && (
+                    <span className="mr-3 text-yellow-600 dark:text-yellow-400 font-semibold">
+                      · {daysSince(selectedRequest.status_changed_at) === 0 ? 'قيد المراجعة منذ اليوم' : `قيد المراجعة منذ ${daysSince(selectedRequest.status_changed_at)} يوم`}
+                    </span>
+                  )}
                 </p>
 
                 {/* اختصار واتساب */}
@@ -535,9 +548,16 @@ export const ReturnRequestsPage = () => {
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{r.doctor_name ?? '—'}</td>
                     <td className="px-5 py-4 text-sm">
-                      <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[r.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                        {r.status}
-                      </span>
+                      <div className="flex flex-col gap-1 items-start">
+                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[r.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                          {r.status}
+                        </span>
+                        {r.status === 'قيد المراجعة' && r.status_changed_at && (
+                          <span className="text-xs text-yellow-600 dark:text-yellow-400 font-medium">
+                            {daysSince(r.status_changed_at) === 0 ? 'اليوم' : `منذ ${daysSince(r.status_changed_at)} يوم`}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {new Date(r.created_at).toLocaleDateString('ar-SA')}

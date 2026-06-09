@@ -11,6 +11,7 @@ export interface ReturnRequest {
   doctor_name: string | null;
   status: string;
   created_at: string;
+  status_changed_at: string | null;
 }
 
 export type NewReturnRequest = Omit<ReturnRequest, 'id' | 'created_at'>;
@@ -34,8 +35,9 @@ export const updateReturnStatus = async (id: number, status: string): Promise<vo
   if (error) throw error;
 };
 
-export const updateReturnRequest = async (id: number, data: Partial<Omit<ReturnRequest, 'id' | 'created_at' | 'reference_number'>>): Promise<void> => {
-  const { error } = await supabase.from('return_requests').update(data).eq('id', id);
+export const updateReturnRequest = async (id: number, data: Partial<Omit<ReturnRequest, 'id' | 'created_at' | 'reference_number'>>, prevStatus?: string): Promise<void> => {
+  const payload = { ...data, ...(data.status && data.status !== prevStatus ? { status_changed_at: new Date().toISOString() } : {}) };
+  const { error } = await supabase.from('return_requests').update(payload).eq('id', id);
   if (error) throw error;
 };
 
