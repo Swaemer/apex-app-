@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
-import { MdChevronLeft, MdChevronRight, MdAccessTime, MdPerson } from 'react-icons/md';
+import { MdChevronLeft, MdChevronRight, MdAccessTime, MdPerson, MdContentCopy, MdCheck } from 'react-icons/md';
+import { toast } from 'react-hot-toast';
 import type { Lead } from '../services/leadsService';
+import { updateLeadStatus } from '../services/leadsService';
 
 interface Props {
   leads: Lead[];
@@ -12,16 +14,39 @@ const ARABIC_MONTHS = [
 ];
 const DAYS = ['أحد','اثن','ثلا','أرب','خمس','جمع','سبت'];
 
+const formatTime = (appointmentAt: string) => {
+  const [h, m] = (appointmentAt.split('T')[1] ?? '00:00').split(':');
+  const hour = parseInt(h ?? '0');
+  const min = m ?? '00';
+  if (hour === 0) return `12:${min} ص`;
+  if (hour < 12) return `${hour}:${min} ص`;
+  if (hour === 12) return `12:${min} م`;
+  return `${hour - 12}:${min} م`;
+};
+
+const buildAppointmentMessage = (l: Lead) => {
+  const date = new Date(l.appointment_at! + (l.appointment_at!.includes('T') ? '' : 'T12:00:00'))
+    .toLocaleDateString('ar-SA', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const time = formatTime(l.appointment_at!);
+  return [
+    `تأكيد موعد في عيادة صفوة أمينة`,
+    ``,
+    `نؤكد موعدكم بتاريخ ${date} الساعة ${time}.`,
+    `نرجو التواجد قبل الموعد بـ 10 دقائق. في حال الرغبة في تعديل الموعد، نرجو إبلاغنا مسبقاً.`,
+  ].join('\n');
+};
+
 export const AppointmentsCalendar = ({ leads }: Props) => {
   const today = new Date();
   const [viewDate, setViewDate] = useState(new Date(today.getFullYear(), today.getMonth(), 1));
   const [selectedDay, setSelectedDay] = useState<string | null>(
     today.toISOString().split('T')[0]
   );
+  const [localLeads, setLocalLeads] = useState<Lead[]>(leads);
 
   const appointments = useMemo(() =>
-    leads.filter((l) => l.appointment_at && l.status === 'تم حجز الموعد'),
-    [leads]
+    localLeads.filter((l) => l.appointment_at && ['تم حجز الموعد', 'تم ارسال تذكير الواتساب', 'حضر', 'حضر ودفع', 'لم يحضر'].includes(l.status)),
+    [localLeads]
   );
 
   const byDay = useMemo(() => {
@@ -134,10 +159,7 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                     <div className="flex items-center justify-between mb-1">
                       <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-bold">
                         <MdAccessTime className="w-3.5 h-3.5" />
-                        {(() => {
-                  const hour = parseInt(l.appointment_at!.split('T')[1]?.substring(0, 2) ?? '0');
-                  return hour === 0 ? '12:00 ص' : hour < 12 ? `${hour}:00 ص` : hour === 12 ? '12:00 م' : `${hour - 12}:00 م`;
-                })()}
+                        {formatTime(l.appointment_at!)}
                       </span>
                       <span className="font-bold text-gray-900 dark:text-white text-sm">{l.name}</span>
                     </div>
@@ -157,6 +179,84 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                         </span>
                       </div>
                     )}
+                    {l.status === 'تم ارسال تذكير الواتساب' ? (
+                      <div className="mt-2 w-full py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5">
+                        <MdCheck className="w-3.5 h-3.5 text-green-500" />
+                        تم إرسال التذكير
+                      </div>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          navigator.clipboard.writeText(buildAppointmentMessage(l));
+                          try {
+                            await updateLeadStatus(l.id, 'تم ارسال تذكير الواتساب');
+                            setLocalLeads((prev) => prev.map((x) => x.id === l.id ? { ...x, status: 'تم ارسال تذكير الواتساب' } : x));
+                            toast.success('تم النسخ وتحديث الحالة');
+                          } catch {
+                            toast.success('تم نسخ رسالة التأكيد');
+                          }
+                        }}
+                        className="mt-2 w-full py-1.5 bg-green-500 hover:bg-green-600 text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <MdContentCopy className="w-3.5 h-3.5" />
+                        نسخ تأكيد الموعد للواتساب
+                      </button>
+                    )}
+                    <div className="mt-1.5 flex gap-1.5">
+                      <button
+                        onClick={async () => {
+                          try {
+                            await updateLeadStatus(l.id, 'حضر');
+                            setLocalLeads((prev) => prev.map((x) => x.id === l.id ? { ...x, status: 'حضر' } : x));
+                            toast.success('تم تسجيل الحضور');
+                          } catch { toast.error('خطأ في التحديث'); }
+                        }}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
+                          l.status === 'حضر'
+                            ? 'bg-blue-500 text-white cursor-default'
+                            : 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40'
+                        }`}
+                        disabled={l.status === 'حضر'}
+                      >
+                        {l.status === 'حضر' ? <MdCheck className="w-3.5 h-3.5" /> : null}
+                        حضر
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await updateLeadStatus(l.id, 'حضر ودفع');
+                            setLocalLeads((prev) => prev.map((x) => x.id === l.id ? { ...x, status: 'حضر ودفع' } : x));
+                            toast.success('تم تسجيل الحضور والدفع');
+                          } catch { toast.error('خطأ في التحديث'); }
+                        }}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
+                          l.status === 'حضر ودفع'
+                            ? 'bg-emerald-500 text-white cursor-default'
+                            : 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                        }`}
+                        disabled={l.status === 'حضر ودفع'}
+                      >
+                        {l.status === 'حضر ودفع' ? <MdCheck className="w-3.5 h-3.5" /> : null}
+                        حضر ودفع
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            await updateLeadStatus(l.id, 'لم يحضر');
+                            setLocalLeads((prev) => prev.map((x) => x.id === l.id ? { ...x, status: 'لم يحضر' } : x));
+                            toast.success('تم تسجيل الغياب');
+                          } catch { toast.error('خطأ في التحديث'); }
+                        }}
+                        className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors ${
+                          l.status === 'لم يحضر'
+                            ? 'bg-red-500 text-white cursor-default'
+                            : 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300 border border-red-200 dark:border-red-700 hover:bg-red-100 dark:hover:bg-red-900/40'
+                        }`}
+                        disabled={l.status === 'لم يحضر'}
+                      >
+                        لم يحضر
+                      </button>
+                    </div>
                   </div>
                 ))}
             </div>
