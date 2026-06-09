@@ -28,7 +28,7 @@ export const getLeads = async (): Promise<Lead[]> => {
       .from('leads')
       .select('*')
       .eq('is_deleted', false)
-      .order('id', { ascending: true })
+      .order('id', { ascending: false })
       .range(from, from + batch - 1);
 
     if (error) throw error;
