@@ -9,6 +9,7 @@ export const AnnouncementBanner = () => {
   const { user } = useAuth();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [acknowledged, setAcknowledged] = useState<number[]>([]);
+  const [current, setCurrent] = useState(0);
 
   const loadAnnouncements = async () => {
     try {
@@ -40,31 +41,55 @@ export const AnnouncementBanner = () => {
 
   if (visible.length === 0) return null;
 
+  const announcement = visible[Math.min(current, visible.length - 1)];
+
   const handleAcknowledge = async (id: number) => {
     try {
       await markAsRead(id, user.name);
       setAcknowledged((prev) => [...prev, id]);
+      setCurrent(0);
     } catch { /* ignore */ }
   };
 
   return (
-    <div className="fixed top-[72px] right-0 left-0 z-40 flex flex-col gap-2 px-4 pt-2" dir="rtl">
-      {visible.map((a) => (
-        <div key={a.id}
-          className="bg-red-600 text-white rounded-xl px-5 py-3 flex items-center justify-between gap-4 shadow-lg">
-          <div className="flex items-center gap-3 flex-1">
-            <MdCampaign className="w-6 h-6 flex-shrink-0" />
-            <p className="text-sm font-medium leading-relaxed">{a.message}</p>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" dir="rtl">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+
+        {/* الهيدر */}
+        <div className="bg-red-600 px-6 py-4 flex items-center gap-3">
+          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+            <MdCampaign className="w-6 h-6 text-white" />
           </div>
+          <div>
+            <p className="text-white font-bold text-base">إشعار مهم</p>
+            {visible.length > 1 && (
+              <p className="text-red-200 text-xs">{current + 1} من {visible.length}</p>
+            )}
+          </div>
+        </div>
+
+        {/* المحتوى */}
+        <div className="px-6 py-6">
+          <p className="text-gray-800 dark:text-gray-100 text-base leading-relaxed font-medium">
+            {announcement.message}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
+            {new Date(announcement.created_at).toLocaleDateString('ar-SA', { weekday: 'long', month: 'long', day: 'numeric' })}
+          </p>
+        </div>
+
+        {/* الزر */}
+        <div className="px-6 pb-6">
           <button
-            onClick={() => handleAcknowledge(a.id)}
-            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-1.5 bg-white text-red-600 rounded-lg text-sm font-bold hover:bg-red-50 transition-colors"
+            onClick={() => handleAcknowledge(announcement.id)}
+            className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition-colors"
           >
-            <MdCheck className="w-4 h-4" />
+            <MdCheck className="w-5 h-5" />
             تم الاطلاع
           </button>
         </div>
-      ))}
+
+      </div>
     </div>
   );
 };
