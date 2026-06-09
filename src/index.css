@@ -32,7 +32,41 @@
   font-weight: 900;
 }
 
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('/src/assets/fonts/thmanyahsans-Light.otf') format('opentype');
+  font-weight: 300;
+}
+
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('/src/assets/fonts/thmanyahsans-Regular.otf') format('opentype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('/src/assets/fonts/thmanyahsans-Medium.otf') format('opentype');
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('/src/assets/fonts/thmanyahsans-Bold.otf') format('opentype');
+  font-weight: 700;
+}
+
+@font-face {
+  font-family: 'Thmanyah Sans';
+  src: url('/src/assets/fonts/thmanyahsans-Black.otf') format('opentype');
+  font-weight: 900;
+}
+
 * {
+  font-family: 'Thmanyah Sans', sans-serif;
+}
+
+.font-serif {
   font-family: 'Thmanyah Serif', serif;
 }
 
