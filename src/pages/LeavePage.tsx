@@ -17,7 +17,7 @@ const statusColors: Record<string, string> = {
 };
 
 const emptyForm = {
-  patient_name: '', phone: '', birth_date: '', id_number: '',
+  patient_name: '', phone: '', birth_day: '', birth_month: '', birth_year: '', id_number: '',
   days_count: '', doctor_name: '', same_day: false,
 };
 
@@ -70,10 +70,13 @@ export const LeavePage = () => {
     if (!form.days_count) { toast.error('أدخل عدد الأيام'); return; }
     if (!form.doctor_name) { toast.error('اختر الطبيب المعالج'); return; }
     try {
+      const birth_date = (form.birth_day || form.birth_month || form.birth_year)
+        ? `${form.birth_day.padStart(2, '0')}/${form.birth_month.padStart(2, '0')}/${form.birth_year}`
+        : null;
       await addLeaveRequest({
         patient_name: form.patient_name.trim(),
         phone: form.phone.trim() || null,
-        birth_date: form.birth_date || null,
+        birth_date,
         id_number: form.id_number.trim() || null,
         days_count: parseInt(form.days_count),
         doctor_name: form.doctor_name,
@@ -159,8 +162,17 @@ export const LeavePage = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تاريخ الميلاد</label>
-                <input type="date" value={form.birth_date} onChange={(e) => setForm((p) => ({ ...p, birth_date: e.target.value }))}
-                  className={inputClass} />
+                <div className="grid grid-cols-3 gap-2">
+                  <input type="number" min="1" max="31" value={form.birth_day}
+                    onChange={(e) => setForm((p) => ({ ...p, birth_day: e.target.value }))}
+                    placeholder="اليوم" className={inputClass} />
+                  <input type="number" min="1" max="12" value={form.birth_month}
+                    onChange={(e) => setForm((p) => ({ ...p, birth_month: e.target.value }))}
+                    placeholder="الشهر" className={inputClass} />
+                  <input type="number" min="1900" max="2100" value={form.birth_year}
+                    onChange={(e) => setForm((p) => ({ ...p, birth_year: e.target.value }))}
+                    placeholder="السنة" className={inputClass} />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">عدد الأيام المطلوبة *</label>
@@ -237,7 +249,7 @@ export const LeavePage = () => {
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{r.id_number ?? '—'}</td>
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{r.phone ?? '—'}</td>
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400">
-                      {r.birth_date ? new Date(r.birth_date).toLocaleDateString('ar-SA') : '—'}
+                      {r.birth_date ?? '—'}
                     </td>
                     <td className="px-5 py-4 text-sm text-center font-bold text-gray-900 dark:text-white">{r.days_count}</td>
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{r.doctor_name}</td>
