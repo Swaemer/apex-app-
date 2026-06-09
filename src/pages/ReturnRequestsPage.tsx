@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { MdAdd, MdDelete, MdEdit } from 'react-icons/md';
+import { MdAdd, MdDelete, MdEdit, MdContentCopy } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import {
   getReturnRequests, addReturnRequest, updateReturnRequest,
@@ -137,6 +137,33 @@ export const ReturnRequestsPage = () => {
       toast.success('تم تحديث الطلب');
       setSelectedRequest(null);
     } catch { toast.error('خطأ في التحديث'); }
+  };
+
+  const statusEmoji: Record<string, string> = {
+    'طلب جديد': '🔵',
+    'قيد المراجعة': '🟡',
+    'تمت الموافقة': '✅',
+    'مرفوض': '❌',
+  };
+
+  const buildWhatsAppMessage = (r: ReturnRequest) => {
+    const date = new Date(r.created_at).toLocaleDateString('ar-SA');
+    const emoji = statusEmoji[r.status] ?? '📋';
+    return [
+      `السلام عليكم ${r.patient_name}،`,
+      ``,
+      `بخصوص طلب الاسترجاع الخاص بكم:`,
+      `📎 الرقم المرجعي: ${r.reference_number}`,
+      `📅 تاريخ الطلب: ${date}`,
+      `${emoji} الحالة: ${r.status}`,
+      ``,
+      `شكراً لتواصلكم معنا.`,
+    ].join('\n');
+  };
+
+  const handleCopyWhatsApp = (r: ReturnRequest) => {
+    navigator.clipboard.writeText(buildWhatsAppMessage(r));
+    toast.success('تم نسخ الرسالة');
   };
 
   const handleDelete = async (id: number) => {
@@ -400,6 +427,21 @@ export const ReturnRequestsPage = () => {
                 <p className="text-xs text-gray-400 dark:text-gray-500">
                   تاريخ الإضافة: {new Date(selectedRequest.created_at).toLocaleDateString('ar-SA')}
                 </p>
+
+                {/* اختصار واتساب */}
+                <div className="rounded-xl border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 p-4">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2">معاينة رسالة الواتساب</p>
+                  <pre className="text-xs text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-sans leading-relaxed">
+                    {buildWhatsAppMessage(selectedRequest)}
+                  </pre>
+                  <button
+                    onClick={() => handleCopyWhatsApp(selectedRequest)}
+                    className="mt-3 w-full py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg text-sm font-semibold flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <MdContentCopy className="w-4 h-4" />
+                    نسخ للواتساب
+                  </button>
+                </div>
               </div>
 
               {isAdmin && (
