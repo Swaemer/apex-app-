@@ -11,12 +11,13 @@ import { getDoctors } from '../services/doctorService';
 import type { Doctor } from '../services/doctorService';
 import { useAuth } from '../context/AuthContext';
 
-const STATUSES = ['طلب جديد', 'قيد المراجعة', 'تمت الموافقة', 'مرفوض'];
+const STATUSES = ['طلب جديد', 'قيد المراجعة', 'تمت الموافقة', 'تم الاسترجاع', 'مرفوض'];
 
 const statusColors: Record<string, string> = {
   'طلب جديد':       'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
   'قيد المراجعة':   'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-700',
   'تمت الموافقة':   'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-700',
+  'تم الاسترجاع':   'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-300 dark:border-emerald-700',
   'مرفوض':          'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700',
 };
 
@@ -139,26 +140,40 @@ export const ReturnRequestsPage = () => {
     } catch { toast.error('خطأ في التحديث'); }
   };
 
-  const statusEmoji: Record<string, string> = {
-    'طلب جديد': '🔵',
-    'قيد المراجعة': '🟡',
-    'تمت الموافقة': '✅',
-    'مرفوض': '❌',
-  };
-
   const buildWhatsAppMessage = (r: ReturnRequest) => {
-    const date = new Date(r.created_at).toLocaleDateString('ar-SA');
-    const emoji = statusEmoji[r.status] ?? '📋';
-    return [
-      `السلام عليكم ${r.patient_name}،`,
-      ``,
-      `بخصوص طلب الاسترجاع الخاص بكم:`,
-      `📎 الرقم المرجعي: ${r.reference_number}`,
-      `📅 تاريخ الطلب: ${date}`,
-      `${emoji} الحالة: ${r.status}`,
-      ``,
-      `شكراً لتواصلكم معنا.`,
-    ].join('\n');
+    const messages: Record<string, string[]> = {
+      'طلب جديد': [
+        `السلام عليكم ${r.patient_name}،`,
+        ``,
+        `تم استلام طلب الاسترجاع الخاص بكم برقم ${r.reference_number} وهو قيد المعالجة.`,
+        `سيتم التواصل معكم قريباً.`,
+      ],
+      'قيد المراجعة': [
+        `السلام عليكم ${r.patient_name}،`,
+        ``,
+        `طلب الاسترجاع رقم ${r.reference_number} يتم مراجعته حالياً من قِبل الفريق المختص.`,
+        `سنُعلمكم بالنتيجة في أقرب وقت.`,
+      ],
+      'تمت الموافقة': [
+        `السلام عليكم ${r.patient_name}،`,
+        ``,
+        `يسعدنا إبلاغكم بالموافقة على طلب الاسترجاع رقم ${r.reference_number}.`,
+        `سيتم التواصل معكم لإتمام الإجراءات.`,
+      ],
+      'تم الاسترجاع': [
+        `السلام عليكم ${r.patient_name}،`,
+        ``,
+        `يسعدنا إبلاغكم بأنه تم إتمام عملية الاسترجاع لطلبكم رقم ${r.reference_number} بنجاح.`,
+        `شكراً لتواصلكم معنا.`,
+      ],
+      'مرفوض': [
+        `السلام عليكم ${r.patient_name}،`,
+        ``,
+        `بخصوص طلب الاسترجاع رقم ${r.reference_number}، نأسف لإبلاغكم بأنه لم تتم الموافقة على الطلب.`,
+        `للاستفسار يرجى التواصل معنا.`,
+      ],
+    };
+    return (messages[r.status] ?? messages['طلب جديد']).join('\n');
   };
 
   const handleCopyWhatsApp = (r: ReturnRequest) => {
