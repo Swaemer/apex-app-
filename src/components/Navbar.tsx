@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../utils/supabase/supabase.ts';
 import { toast } from 'react-hot-toast';
 import { IoHome, IoLogOut } from 'react-icons/io5';
-import { MdLeaderboard, MdScience, MdAssignment, MdLocalOffer, MdAdminPanelSettings, MdDarkMode, MdLightMode } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdLocalOffer, MdAdminPanelSettings, MdDarkMode, MdLightMode, MdAssignmentReturn } from 'react-icons/md';
 import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
 
@@ -125,6 +125,20 @@ export const Navbar = () => {
               <MdLocalOffer className="w-5 h-5" />
               عروض الشهر
             </button>
+
+            {user?.isAdmin && (
+              <button
+                onClick={() => navigate('/return-requests')}
+                className={`px-4 py-2.5 rounded-lg font-medium transition-all flex items-center gap-2 ${
+                  location.pathname === '/return-requests'
+                    ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+              >
+                <MdAssignmentReturn className="w-5 h-5" />
+                طلبات الاسترجاع
+              </button>
+            )}
 
             {user?.isAdmin && (
               <button
