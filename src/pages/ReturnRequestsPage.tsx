@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { MdAdd, MdDelete } from 'react-icons/md';
+import { MdAdd, MdDelete, MdEdit } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import {
-  getReturnRequests, addReturnRequest, updateReturnStatus,
+  getReturnRequests, addReturnRequest, updateReturnRequest,
   deleteReturnRequest, generateReferenceNumber,
 } from '../services/returnRequestsService';
 import type { ReturnRequest } from '../services/returnRequestsService';
@@ -42,6 +42,18 @@ export const ReturnRequestsPage = () => {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [filter, setFilter] = useState('الكل');
+
+  const [selectedRequest, setSelectedRequest] = useState<ReturnRequest | null>(null);
+  const [editForm, setEditForm] = useState<Omit<ReturnRequest, 'id' | 'created_at' | 'reference_number'> & { reference_number: string }>({
+    reference_number: '',
+    patient_name: '',
+    phone: null,
+    file_number: null,
+    invoice_number: null,
+    reason: '',
+    doctor_name: null,
+    status: 'طلب جديد',
+  });
 
   const load = async () => {
     setLoading(true);
@@ -86,20 +98,51 @@ export const ReturnRequestsPage = () => {
       toast.success('تم إضافة الطلب');
       setForm(emptyForm);
       setShowForm(false);
-    } catch { toast.error('خطأ في إضافة الطلب'); }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error('addReturnRequest error:', err);
+      toast.error(`خطأ في إضافة الطلب: ${msg}`);
+    }
   };
 
-  const handleStatusChange = async (id: number, status: string) => {
+  const openDetail = (r: ReturnRequest) => {
+    setSelectedRequest(r);
+    setEditForm({
+      reference_number: r.reference_number,
+      patient_name: r.patient_name,
+      phone: r.phone,
+      file_number: r.file_number,
+      invoice_number: r.invoice_number,
+      reason: r.reason,
+      doctor_name: r.doctor_name,
+      status: r.status,
+    });
+  };
+
+  const handleUpdate = async () => {
+    if (!selectedRequest) return;
+    if (!editForm.patient_name.trim()) { toast.error('أدخل اسم الراجع'); return; }
+    if (!editForm.reason.trim()) { toast.error('أدخل سبب الاسترجاع'); return; }
     try {
-      await updateReturnStatus(id, status);
-      setRequests((prev) => prev.map((r) => r.id === id ? { ...r, status } : r));
-      toast.success('تم تحديث الحالة');
+      await updateReturnRequest(selectedRequest.id, {
+        patient_name: editForm.patient_name.trim(),
+        phone: editForm.phone?.trim() || null,
+        file_number: editForm.file_number?.trim() || null,
+        invoice_number: editForm.invoice_number?.trim() || null,
+        reason: editForm.reason.trim(),
+        doctor_name: editForm.doctor_name || null,
+        status: editForm.status,
+      });
+      setRequests((prev) => prev.map((r) => r.id === selectedRequest.id ? { ...r, ...editForm } : r));
+      toast.success('تم تحديث الطلب');
+      setSelectedRequest(null);
     } catch { toast.error('خطأ في التحديث'); }
   };
 
   const handleDelete = async (id: number) => {
     try {
       await deleteReturnRequest(id);
+      setSelectedRequest(null);
       toast.success('تم الحذف');
     } catch { toast.error('خطأ في الحذف'); }
   };
@@ -238,6 +281,148 @@ export const ReturnRequestsPage = () => {
           </div>
         )}
 
+        {/* Modal تفاصيل الطلب */}
+        {selectedRequest && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setSelectedRequest(null)}
+          >
+            <div
+              dir="rtl"
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                <button
+                  onClick={() => setSelectedRequest(null)}
+                  className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 text-xl font-bold"
+                >✕</button>
+                <div className="flex items-center gap-2">
+                  <MdEdit className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">تفاصيل الطلب</h2>
+                </div>
+              </div>
+
+              {/* الرقم المرجعي */}
+              <div className="px-6 pt-4">
+                <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-3 py-1.5 rounded-lg">
+                  {selectedRequest.reference_number}
+                </span>
+              </div>
+
+              <div className="px-6 py-4 space-y-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    اسم الراجع <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.patient_name}
+                    onChange={(e) => setEditForm((p) => ({ ...p, patient_name: e.target.value }))}
+                    className={inputClass}
+                    disabled={!isAdmin}
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">رقم الجوال</label>
+                    <input
+                      type="tel"
+                      value={editForm.phone ?? ''}
+                      onChange={(e) => setEditForm((p) => ({ ...p, phone: e.target.value }))}
+                      className={inputClass}
+                      disabled={!isAdmin}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">رقم الملف</label>
+                    <input
+                      type="text"
+                      value={editForm.file_number ?? ''}
+                      onChange={(e) => setEditForm((p) => ({ ...p, file_number: e.target.value }))}
+                      className={inputClass}
+                      disabled={!isAdmin}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">رقم الفاتورة</label>
+                  <input
+                    type="text"
+                    value={editForm.invoice_number ?? ''}
+                    onChange={(e) => setEditForm((p) => ({ ...p, invoice_number: e.target.value }))}
+                    className={inputClass}
+                    disabled={!isAdmin}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">
+                    سبب الاسترجاع <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    value={editForm.reason}
+                    onChange={(e) => setEditForm((p) => ({ ...p, reason: e.target.value }))}
+                    rows={3}
+                    className={`${inputClass} resize-none`}
+                    disabled={!isAdmin}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">الطبيب المعالج</label>
+                  <select
+                    value={editForm.doctor_name ?? ''}
+                    onChange={(e) => setEditForm((p) => ({ ...p, doctor_name: e.target.value || null }))}
+                    className={inputClass}
+                    disabled={!isAdmin}
+                  >
+                    <option value="">-- اختر الطبيب --</option>
+                    {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">الحالة</label>
+                  <select
+                    value={editForm.status}
+                    onChange={(e) => setEditForm((p) => ({ ...p, status: e.target.value }))}
+                    className={`${inputClass} font-semibold ${statusColors[editForm.status] ?? ''}`}
+                    disabled={!isAdmin}
+                  >
+                    {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  تاريخ الإضافة: {new Date(selectedRequest.created_at).toLocaleDateString('ar-SA')}
+                </p>
+              </div>
+
+              {isAdmin && (
+                <div className="flex gap-3 px-6 pb-6">
+                  <button
+                    onClick={handleUpdate}
+                    className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition-colors"
+                  >
+                    حفظ التعديلات
+                  </button>
+                  <button
+                    onClick={() => handleDelete(selectedRequest.id)}
+                    className="py-2.5 px-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl text-sm font-semibold hover:bg-red-100 dark:hover:bg-red-900/40 transition-colors border border-red-200 dark:border-red-800 flex items-center gap-1.5"
+                  >
+                    <MdDelete className="w-4 h-4" />
+                    حذف
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* فلاتر الحالة */}
         <div className="mb-6 flex gap-3 overflow-x-auto pb-2">
           {['الكل', ...STATUSES].map((s) => (
@@ -270,12 +455,15 @@ export const ReturnRequestsPage = () => {
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">الطبيب المعالج</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">الحالة</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">التاريخ</th>
-                  {isAdmin && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">حذف</th>}
                 </tr>
               </thead>
               <tbody>
                 {filtered.length > 0 ? filtered.map((r) => (
-                  <tr key={r.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors">
+                  <tr
+                    key={r.id}
+                    onClick={() => openDetail(r)}
+                    className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors cursor-pointer"
+                  >
                     <td className="px-5 py-4">
                       <span className="text-xs font-mono font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2.5 py-1 rounded-lg whitespace-nowrap">
                         {r.reference_number}
@@ -290,34 +478,17 @@ export const ReturnRequestsPage = () => {
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">{r.doctor_name ?? '—'}</td>
                     <td className="px-5 py-4 text-sm">
-                      {isAdmin ? (
-                        <select
-                          value={r.status}
-                          onChange={(e) => handleStatusChange(r.id, e.target.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[r.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}
-                        >
-                          {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                        </select>
-                      ) : (
-                        <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[r.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                          {r.status}
-                        </span>
-                      )}
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[r.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                        {r.status}
+                      </span>
                     </td>
                     <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
                       {new Date(r.created_at).toLocaleDateString('ar-SA')}
                     </td>
-                    {isAdmin && (
-                      <td className="px-5 py-4 text-center">
-                        <button onClick={() => handleDelete(r.id)} className="text-red-500 hover:text-red-700 transition-colors">
-                          <MdDelete className="w-5 h-5" />
-                        </button>
-                      </td>
-                    )}
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 10 : 9} className="px-6 py-16 text-center text-gray-400 dark:text-gray-500">
+                    <td colSpan={9} className="px-6 py-16 text-center text-gray-400 dark:text-gray-500">
                       {loading ? 'جاري التحميل...' : 'لا توجد طلبات استرجاع'}
                     </td>
                   </tr>

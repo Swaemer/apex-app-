@@ -34,6 +34,11 @@ export const updateReturnStatus = async (id: number, status: string): Promise<vo
   if (error) throw error;
 };
 
+export const updateReturnRequest = async (id: number, data: Partial<Omit<ReturnRequest, 'id' | 'created_at' | 'reference_number'>>): Promise<void> => {
+  const { error } = await supabase.from('return_requests').update(data).eq('id', id);
+  if (error) throw error;
+};
+
 export const deleteReturnRequest = async (id: number): Promise<void> => {
   const { error } = await supabase.from('return_requests').delete().eq('id', id);
   if (error) throw error;
