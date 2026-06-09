@@ -110,10 +110,11 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           const existingId = (cells[config.idColumnIndex] ?? '').toString().trim();
           if (existingId) {
             const idNum = parseInt(existingId);
-            if (!isNaN(idNum) && existingIdSet.has(idNum)) {
-              skipped++; return; // موجود بالـ DB فعلاً
+            // غير رقمي (مثل DELETED) أو موجود بالـ DB (سواء نشط أو محذوف) → تجاهل
+            if (isNaN(idNum) || existingIdSet.has(idNum)) {
+              skipped++; return;
             }
-            // ID بالشيت لكن مو موجود بالـ DB → أعد الاستيراد
+            // رقم صحيح لكن مو بالـ DB → أعد الاستيراد
           }
         }
 
@@ -360,9 +361,12 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             prev.some((l) => l.id === newLead.id) ? prev : [newLead, ...prev]
           );
         } else if (payload.eventType === 'UPDATE') {
-          setLeads((prev) =>
-            prev.map((l) => (l.id === (payload.new as Lead).id ? (payload.new as Lead) : l))
-          );
+          const updated = payload.new as Lead;
+          if (updated.is_deleted) {
+            setLeads((prev) => prev.filter((l) => l.id !== updated.id));
+          } else {
+            setLeads((prev) => prev.map((l) => l.id === updated.id ? updated : l));
+          }
         } else if (payload.eventType === 'DELETE') {
           setLeads((prev) => prev.filter((l) => l.id !== (payload.old as Lead).id));
         }

@@ -13,6 +13,7 @@ export interface Lead {
   doctor: string | null;
   created_at: string;
   updated_at: string;
+  is_deleted?: boolean;
 }
 
 export type NewLead = Omit<Lead, 'id' | 'created_at' | 'updated_at'>;
@@ -26,6 +27,7 @@ export const getLeads = async (): Promise<Lead[]> => {
     const { data, error } = await supabase
       .from('leads')
       .select('*')
+      .eq('is_deleted', false)
       .order('id', { ascending: true })
       .range(from, from + batch - 1);
 
@@ -71,7 +73,7 @@ export const deleteLeadsByPhones = async (phones: string[]): Promise<void> => {
 };
 
 export const deleteLeadsByIds = async (ids: number[]): Promise<void> => {
-  const { error } = await supabase.from('leads').delete().in('id', ids);
+  const { error } = await supabase.from('leads').update({ is_deleted: true }).in('id', ids);
   if (error) throw error;
 };
 
@@ -108,7 +110,7 @@ export const updateLeadAssignment = async (id: number, assigned_to: string): Pro
 };
 
 export const deleteLead = async (id: number): Promise<void> => {
-  const { error } = await supabase.from('leads').delete().eq('id', id);
+  const { error } = await supabase.from('leads').update({ is_deleted: true }).eq('id', id);
   if (error) throw error;
 };
 
