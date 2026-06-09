@@ -68,7 +68,7 @@ export const Navbar = () => {
 
           {/* الشعار + اسم المستخدم */}
           <div className="flex items-center gap-3">
-            <img src="/logosa.png" alt="logo" className="w-8 h-8 object-contain" />
+            <img src="/logosa.png" alt="logo" className="w-12 h-12 object-contain" />
             <div className="leading-tight">
               <p className="text-xs text-gray-400 dark:text-gray-500">أهلاً،</p>
               <p className="text-sm font-bold text-gray-900 dark:text-white">{user?.name}</p>
