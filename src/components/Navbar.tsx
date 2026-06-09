@@ -103,7 +103,7 @@ export const Navbar = () => {
         </div>
 
         {/* الصف الثاني: روابط التنقل */}
-        <div className="flex items-center gap-1 h-11 overflow-x-auto">
+        <div className="flex items-center justify-center gap-1 h-11 overflow-x-auto">
           {navLinks.map(({ path, label, icon: Icon }) => (
             <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
               <Icon className="w-4 h-4" />
