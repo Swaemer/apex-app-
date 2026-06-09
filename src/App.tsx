@@ -24,7 +24,7 @@ function App() {
       <BrowserRouter>
         <Navbar />
         <AnnouncementBanner />
-        <main className="pt-24">
+        <main className="pr-56">
           <Routes>
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/reset-password" element={<ResetPasswordPage />} />

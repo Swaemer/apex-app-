@@ -8,17 +8,17 @@ import { useAuth } from '../context/AuthContext';
 import { useDarkMode } from '../context/DarkModeContext';
 
 const navLinks = [
-  { path: '/home',            label: 'الرئيسية',         icon: IoHome },
-  { path: '/leads',           label: 'العملاء',           icon: MdLeaderboard },
-  { path: '/appointments',    label: 'الحجوزات',          icon: MdCalendarMonth },
-  { path: '/lab',             label: 'المعمل',            icon: MdScience },
-  { path: '/leave',           label: 'الإجازات',          icon: MdAssignment },
-  { path: '/offers',          label: 'العروض',            icon: MdLocalOffer },
+  { path: '/home',         label: 'الرئيسية',   icon: IoHome },
+  { path: '/leads',        label: 'العملاء',     icon: MdLeaderboard },
+  { path: '/appointments', label: 'الحجوزات',    icon: MdCalendarMonth },
+  { path: '/lab',          label: 'المعمل',      icon: MdScience },
+  { path: '/leave',        label: 'الإجازات',    icon: MdAssignment },
+  { path: '/offers',       label: 'العروض',      icon: MdLocalOffer },
 ];
 
 const adminLinks = [
-  { path: '/return-requests', label: 'الاسترجاع',         icon: MdAssignmentReturn },
-  { path: '/permissions',     label: 'الصلاحيات',         icon: MdAdminPanelSettings },
+  { path: '/return-requests', label: 'الاسترجاع',  icon: MdAssignmentReturn },
+  { path: '/permissions',     label: 'الصلاحيات',  icon: MdAdminPanelSettings },
 ];
 
 export const Navbar = () => {
@@ -53,76 +53,66 @@ export const Navbar = () => {
   if (location.pathname === '/auth') return null;
 
   const linkClass = (path: string) =>
-    `flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+    `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
       location.pathname === path
         ? 'bg-slate-700 text-white shadow-sm'
         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
     }`;
 
   return (
-    <nav className="fixed top-0 right-0 left-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm" dir="rtl">
-      <div className="max-w-[1400px] mx-auto px-6">
+    <aside className="fixed top-0 right-0 bottom-0 w-56 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-sm z-50 flex flex-col" dir="rtl">
 
-        {/* الصف الأول: الهوية + الوقت + الإجراءات */}
-        <div className="flex items-center justify-between h-14 border-b border-gray-100 dark:border-gray-800">
-
-          {/* الشعار + اسم المستخدم */}
-          <div className="flex items-center gap-3">
-            <img src="/logosa.png" alt="logo" className="w-12 h-12 object-contain" />
-            <div className="leading-tight">
-              <p className="text-xs text-gray-400 dark:text-gray-500">أهلاً،</p>
-              <p className="text-sm font-bold text-gray-900 dark:text-white">{user?.name}</p>
-            </div>
-          </div>
-
-          {/* الوقت والتاريخ */}
-          <div className="text-center">
-            <p className="text-xl font-bold text-gray-900 dark:text-white font-mono leading-none">{currentTime}</p>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{currentDate}</p>
-          </div>
-
-          {/* الإجراءات */}
-          <div className="flex items-center gap-1">
-            <button
-              onClick={toggle}
-              className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
-              title={dark ? 'الوضع النهاري' : 'الوضع الليلي'}
-            >
-              {dark ? <MdLightMode className="w-5 h-5" /> : <MdDarkMode className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-            >
-              <IoLogOut className="w-4 h-4" />
-              خروج
-            </button>
-          </div>
-        </div>
-
-        {/* الصف الثاني: روابط التنقل */}
-        <div className="flex items-center justify-center gap-1 h-11 overflow-x-auto">
-          {navLinks.map(({ path, label, icon: Icon }) => (
-            <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
-              <Icon className="w-4 h-4" />
-              {label}
-            </button>
-          ))}
-
-          {user?.isAdmin && (
-            <>
-              <div className="h-5 w-px bg-gray-200 dark:bg-gray-700 mx-1" />
-              {adminLinks.map(({ path, label, icon: Icon }) => (
-                <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
-                  <Icon className="w-4 h-4" />
-                  {label}
-                </button>
-              ))}
-            </>
-          )}
-        </div>
-
+      {/* الشعار + الساعة */}
+      <div className="flex flex-col items-center pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
+        <img src="/logosa.svg" alt="logo" className="w-20 h-20 object-contain" />
+        <p className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-2">{currentTime}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">أهلاً، <span className="font-bold text-gray-700 dark:text-gray-200">{user?.name}</span></p>
       </div>
-    </nav>
+
+      {/* روابط التنقل */}
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+        {navLinks.map(({ path, label, icon: Icon }) => (
+          <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
+            <Icon className="w-5 h-5 shrink-0" />
+            {label}
+          </button>
+        ))}
+
+        {user?.isAdmin && (
+          <>
+            <div className="my-2 border-t border-gray-100 dark:border-gray-800" />
+            {adminLinks.map(({ path, label, icon: Icon }) => (
+              <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
+                <Icon className="w-5 h-5 shrink-0" />
+                {label}
+              </button>
+            ))}
+          </>
+        )}
+      </nav>
+
+      {/* الجزء السفلي: اليوزر + الساعة + الإجراءات */}
+      <div className="px-4 py-4 border-t border-gray-100 dark:border-gray-800 space-y-3">
+
+        {/* الإجراءات */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={toggle}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+          >
+            {dark ? <MdLightMode className="w-5 h-5" /> : <MdDarkMode className="w-5 h-5" />}
+          </button>
+          <button
+            onClick={handleLogout}
+            className="flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+          >
+            <IoLogOut className="w-4 h-4" />
+            خروج
+          </button>
+        </div>
+      </div>
+
+    </aside>
   );
 };
