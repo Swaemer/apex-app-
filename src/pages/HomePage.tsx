@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdFlag, MdEdit } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
-import { StatusDonut, RadialProgress, StackedBar } from '../components/StatCharts';
+import { StatusDonut, RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
 import { getLeads, getEmployees } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
+import { getMonthlyTarget, setMonthlyTarget } from '../services/targetService';
 import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
@@ -55,6 +56,14 @@ export const HomePage = () => {
   const [canViewAdmin, setCanViewAdmin] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
   const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
+  const [monthlyTarget, setMonthlyTargetState] = useState(0);
+  const [monthlyTargetAmount, setMonthlyTargetAmountState] = useState(0);
+  const [editingTarget, setEditingTarget] = useState(false);
+  const [targetInput, setTargetInput] = useState('');
+  const [targetAmountInput, setTargetAmountInput] = useState('');
+  const [savingTarget, setSavingTarget] = useState(false);
+
+  const currentMonthYear = new Date().toISOString().slice(0, 7);
 
   useEffect(() => {
     if (!user) return;
@@ -64,10 +73,12 @@ export const HomePage = () => {
         if (user.isAdmin) {
           setCanViewAdmin(true);
           setLeads(allLeads);
-          const [emps, cases, anns] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements()]);
+          const [emps, cases, anns, target] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements(), getMonthlyTarget(currentMonthYear)]);
           setEmployees(emps);
           setLabCases(cases);
           setAnnouncements(anns);
+          setMonthlyTargetState(target?.target ?? 0);
+          setMonthlyTargetAmountState(target?.target_amount ?? 0);
         } else {
           // تحقق من صلاحية عرض الداشبورد
           const { data: profile } = await supabase
@@ -140,6 +151,19 @@ export const HomePage = () => {
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
   };
 
+  const handleSaveTarget = async () => {
+    const value = parseInt(targetInput);
+    const amountValue = parseFloat(targetAmountInput);
+    if (isNaN(value) || value < 0 || isNaN(amountValue) || amountValue < 0) return;
+    setSavingTarget(true);
+    try {
+      await setMonthlyTarget(currentMonthYear, value, amountValue);
+      setMonthlyTargetState(value);
+      setMonthlyTargetAmountState(amountValue);
+      setEditingTarget(false);
+    } catch { /* ignore */ }
+    setSavingTarget(false);
+  };
 
   // إحصائيات المعمل
   const labStatuses = ['في المعمل', 'تم الاستلام', 'أعيد للمعمل'];
@@ -150,6 +174,10 @@ export const HomePage = () => {
   const completionRate = totalLeads > 0 ? Math.round((totalDone / totalLeads) * 100) : 0;
   const leadStatusData = STATUSES.map((s) => ({ name: s, value: leads.filter((l) => l.status === s).length, color: statusHexColors[s] }));
   const labStatusData = labStatuses.map((s) => ({ name: s, value: labCases.filter((c) => c.status === s).length, color: labStatusHexColors[s] }));
+
+  // تارقت الشهر
+  const monthlyLeadsCount = leads.filter((l) => l.created_at?.slice(0, 7) === currentMonthYear).length;
+  const targetPercentage = monthlyTarget > 0 ? Math.round((monthlyLeadsCount / monthlyTarget) * 100) : 0;
 
   // إحصائيات الموظف
   const myTotal = myLeads.length;
@@ -164,6 +192,59 @@ export const HomePage = () => {
         <div className="max-w-6xl mx-auto">
           {!loadingStats && (
             <>
+              {/* تارقت الشهر */}
+              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <MdFlag className="w-5 h-5" />
+                    <h2 className="text-lg font-bold">تارقت الشهر</h2>
+                  </div>
+                  {isAdmin && !editingTarget && (
+                    <button onClick={() => { setTargetInput(String(monthlyTarget)); setTargetAmountInput(String(monthlyTargetAmount)); setEditingTarget(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                      <MdEdit className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                {editingTarget ? (
+                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">عدد الليدز</label>
+                      <input type="number" min="0" value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
+                        className="w-28 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" autoFocus />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-white/70 mb-1">المبلغ (ر.س)</label>
+                      <input type="number" min="0" value={targetAmountInput} onChange={(e) => setTargetAmountInput(e.target.value)}
+                        className="w-32 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button onClick={handleSaveTarget} disabled={savingTarget} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">حفظ</button>
+                      <button onClick={() => setEditingTarget(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">إلغاء</button>
+                    </div>
+                  </div>
+                ) : monthlyTarget > 0 ? (
+                  <>
+                    <div className="flex items-end justify-between mb-3">
+                      <div className="flex items-end gap-2">
+                        <CountUp value={monthlyLeadsCount} className="text-4xl font-bold" />
+                        <span className="text-white/70 text-lg mb-1">/ {monthlyTarget} ليد</span>
+                      </div>
+                      <span className="text-white/70 text-sm">{targetPercentage}%</span>
+                    </div>
+                    <div className="w-full h-2.5 rounded-full bg-white/20 overflow-hidden mb-3">
+                      <div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${Math.min(targetPercentage, 100)}%` }} />
+                    </div>
+                    {monthlyTargetAmount > 0 && (
+                      <p className="text-white/80 text-sm">
+                        المبلغ المستهدف: <span className="font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')} ر.س</span>
+                      </p>
+                    )}
+                  </>
+                ) : (
+                  <p className="text-white/70 text-sm">لم يتم تحديد تارقت لهذا الشهر بعد</p>
+                )}
+              </div>
+
               {/* إحصائيات Leads */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">إحصائيات الـ Leads</h2>

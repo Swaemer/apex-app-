@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
 export interface ChartDatum {
@@ -99,3 +100,32 @@ export const StackedBar = ({ data, total }: StackedBarProps) => (
     )}
   </div>
 );
+
+interface CountUpProps {
+  value: number;
+  duration?: number;
+  className?: string;
+}
+
+export const CountUp = ({ value, duration = 800, className }: CountUpProps) => {
+  const [display, setDisplay] = useState(0);
+  const fromRef = useRef(0);
+
+  useEffect(() => {
+    const from = fromRef.current;
+    const start = performance.now();
+
+    let frame: number;
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(from + (value - from) * eased));
+      if (progress < 1) frame = requestAnimationFrame(tick);
+      else fromRef.current = value;
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [value, duration]);
+
+  return <span className={className}>{display}</span>;
+};
