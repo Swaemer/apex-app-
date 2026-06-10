@@ -12,6 +12,7 @@ import { LeavePage } from './pages/LeavePage';
 import { OffersPage } from './pages/OffersPage';
 import { AppointmentsPage } from './pages/AppointmentsPage';
 import { PermissionsPage } from './pages/PermissionsPage';
+import { DoctorsPage } from './pages/DoctorsPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { ReturnRequestsPage } from './pages/ReturnRequestsPage';
 import { AnnouncementBanner } from './components/AnnouncementBanner';
@@ -41,6 +42,7 @@ function App() {
             <Route path="/offers" element={<ProtectedRoute><OffersPage /></ProtectedRoute>} />
             <Route path="/appointments" element={<ProtectedRoute><AppointmentsPage /></ProtectedRoute>} />
             <Route path="/permissions" element={<ProtectedRoute><PermissionsPage /></ProtectedRoute>} />
+            <Route path="/doctors" element={<ProtectedRoute><DoctorsPage /></ProtectedRoute>} />
             <Route path="/return-requests" element={<ProtectedRoute><ReturnRequestsPage /></ProtectedRoute>} />
             <Route path="/" element={<Navigate to="/auth" replace />} />
           </Routes>

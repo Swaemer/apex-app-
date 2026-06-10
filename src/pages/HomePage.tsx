@@ -1,27 +1,32 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdAdd, MdDelete, MdEdit, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
+import { StatusDonut, RadialProgress, StackedBar } from '../components/StatCharts';
 import { getLeads, getEmployees } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
-import { getDoctors, addDoctor, deleteDoctor, updateDoctor } from '../services/doctorService';
 import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
 import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
-import type { Doctor } from '../services/doctorService';
 import type { Announcement, AnnouncementRead } from '../services/announcementService';
 
 const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'];
 
-const statusColors: Record<string, string> = {
-  جديد:             'bg-blue-50 text-blue-700 border-blue-200',
-  متابعة:           'bg-yellow-50 text-yellow-700 border-yellow-200',
-  'تم حجز الموعد':  'bg-green-50 text-green-700 border-green-200',
-  'عميل بالفعل':    'bg-purple-50 text-purple-700 border-purple-200',
-  'لا يرغب':        'bg-gray-100 text-gray-500 border-gray-300',
+const statusHexColors: Record<string, string> = {
+  جديد:             '#3b82f6',
+  متابعة:           '#eab308',
+  'تم حجز الموعد':  '#22c55e',
+  'عميل بالفعل':    '#a855f7',
+  'لا يرغب':        '#9ca3af',
+};
+
+const labStatusHexColors: Record<string, string> = {
+  'في المعمل':    '#eab308',
+  'تم الاستلام':  '#22c55e',
+  'أعيد للمعمل':  '#ef4444',
 };
 
 const motivationalMessages = (rate: number): { text: string; emoji: string } => {
@@ -42,10 +47,6 @@ export const HomePage = () => {
   const [myLeads, setMyLeads] = useState<Lead[]>([]);
   const [employees, setEmployees] = useState<Profile[]>([]);
   const [labCases, setLabCases] = useState<LabCase[]>([]);
-  const [doctors, setDoctors] = useState<Doctor[]>([]);
-  const [newDoctorName, setNewDoctorName] = useState('');
-  const [editingDoctorId, setEditingDoctorId] = useState<number | null>(null);
-  const [editingDoctorName, setEditingDoctorName] = useState('');
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [readsMap, setReadsMap] = useState<Record<number, AnnouncementRead[]>>({});
   const [expandedAnn, setExpandedAnn] = useState<number | null>(null);
@@ -53,6 +54,7 @@ export const HomePage = () => {
   const [targetEmployees, setTargetEmployees] = useState<string[]>([]);
   const [canViewAdmin, setCanViewAdmin] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -62,10 +64,9 @@ export const HomePage = () => {
         if (user.isAdmin) {
           setCanViewAdmin(true);
           setLeads(allLeads);
-          const [emps, cases, docs, anns] = await Promise.all([getEmployees(), getLabCases(), getDoctors(), getAllAnnouncements()]);
+          const [emps, cases, anns] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements()]);
           setEmployees(emps);
           setLabCases(cases);
-          setDoctors(docs);
           setAnnouncements(anns);
         } else {
           // تحقق من صلاحية عرض الداشبورد
@@ -110,26 +111,6 @@ export const HomePage = () => {
     return () => { supabase.removeChannel(channel); };
   }, [user]);
 
-  const handleAddDoctor = async () => {
-    if (!newDoctorName.trim()) return;
-    await addDoctor(newDoctorName.trim());
-    setDoctors(await getDoctors());
-    setNewDoctorName('');
-  };
-
-  const handleDeleteDoctor = async (id: number) => {
-    await deleteDoctor(id);
-    setDoctors((prev) => prev.filter((d) => d.id !== id));
-  };
-
-  const handleUpdateDoctor = async (id: number) => {
-    if (!editingDoctorName.trim()) return;
-    await updateDoctor(id, editingDoctorName.trim());
-    setDoctors((prev) => prev.map((d) => d.id === id ? { ...d, name: editingDoctorName.trim() } : d));
-    setEditingDoctorId(null);
-  };
-
-
   const handleExpandAnn = async (id: number) => {
     if (expandedAnn === id) { setExpandedAnn(null); return; }
     setExpandedAnn(id);
@@ -167,11 +148,14 @@ export const HomePage = () => {
   const totalLeads = leads.length;
   const totalDone = leads.filter((l) => l.status === 'تم حجز الموعد').length;
   const completionRate = totalLeads > 0 ? Math.round((totalDone / totalLeads) * 100) : 0;
+  const leadStatusData = STATUSES.map((s) => ({ name: s, value: leads.filter((l) => l.status === s).length, color: statusHexColors[s] }));
+  const labStatusData = labStatuses.map((s) => ({ name: s, value: labCases.filter((c) => c.status === s).length, color: labStatusHexColors[s] }));
 
   // إحصائيات الموظف
   const myTotal = myLeads.length;
   const myDone = myLeads.filter((l) => l.status === 'تم حجز الموعد').length;
   const myRate = myTotal > 0 ? Math.round((myDone / myTotal) * 100) : 0;
+  const myStatusData = STATUSES.map((s) => ({ name: s, value: myLeads.filter((l) => l.status === s).length, color: statusHexColors[s] }));
   const motivation = motivationalMessages(myRate);
 
   if (canViewAdmin) {
@@ -186,31 +170,11 @@ export const HomePage = () => {
           {!loadingStats && (
             <>
               {/* إحصائيات Leads */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 text-right">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">إجمالي الـ Leads</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{totalLeads}</p>
-                </div>
-                {STATUSES.map((s) => {
-                  const count = leads.filter((l) => l.status === s).length;
-                  return (
-                    <div key={s} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 text-right">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{s}</p>
-                      <p className="text-3xl font-bold text-gray-900 dark:text-white">{count}</p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{totalLeads > 0 ? Math.round((count / totalLeads) * 100) : 0}%</p>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* نسبة الإنجاز */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">نسبة الإنجاز الكلية</span>
-                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">{completionRate}%</span>
-                </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-3">
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-3 rounded-full transition-all duration-700" style={{ width: `${completionRate}%` }} />
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">إحصائيات الـ Leads</h2>
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <StatusDonut data={leadStatusData} total={totalLeads} centerLabel="إجمالي" />
+                  <RadialProgress percentage={completionRate} label="نسبة الإنجاز" color="#22c55e" />
                 </div>
               </div>
 
@@ -223,21 +187,22 @@ export const HomePage = () => {
                       const empLeads = leads.filter((l) => l.assigned_to === emp.name);
                       const empDone = empLeads.filter((l) => l.status === 'تم حجز الموعد').length;
                       const empRate = empLeads.length > 0 ? Math.round((empDone / empLeads.length) * 100) : 0;
+                      const empStatusData = STATUSES.map((s) => ({ name: s, value: empLeads.filter((l) => l.status === s).length, color: statusHexColors[s] }));
                       return (
                         <div key={emp.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 text-right">
-                          <div className="flex items-center justify-between mb-4">
-                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg border border-green-100 dark:border-green-800">{empRate}% إنجاز</span>
+                          <div className="flex items-start justify-between mb-4">
                             <div><p className="font-bold text-gray-900 dark:text-white">{emp.name}</p><p className="text-xs text-gray-400 dark:text-gray-500">{empLeads.length} lead</p></div>
+                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg border border-green-100 dark:border-green-800">{empRate}% إنجاز</span>
                           </div>
-                          <div className="flex gap-2 flex-wrap mb-4">
-                            {STATUSES.map((s) => {
-                              const cnt = empLeads.filter((l) => l.status === s).length;
-                              return <span key={s} className={`px-2.5 py-1 rounded-lg text-xs font-semibold border ${statusColors[s]}`}>{s}: {cnt}</span>;
-                            })}
+                          <div className="flex gap-3 flex-wrap mb-3">
+                            {empStatusData.filter((d) => d.value > 0).map((d) => (
+                              <span key={d.name} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-300">
+                                <span className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }} />
+                                {d.name}: <span className="font-bold text-gray-900 dark:text-white">{d.value}</span>
+                              </span>
+                            ))}
                           </div>
-                          <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-                            <div className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full" style={{ width: `${empRate}%` }} />
-                          </div>
+                          <StackedBar data={empStatusData} total={empLeads.length} />
                         </div>
                       );
                     })}
@@ -251,83 +216,23 @@ export const HomePage = () => {
               {/* إحصائيات المعمل — للجميع */}
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">إحصائيات المعمل</h2>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 text-right">
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">إجمالي الحالات</p>
-                    <p className="text-3xl font-bold text-gray-900 dark:text-white">{labCases.length}</p>
-                  </div>
-                  {labStatuses.map((s) => {
-                    const colors: Record<string, string> = { 'في المعمل': 'text-yellow-700', 'تم الاستلام': 'text-green-700', 'أعيد للمعمل': 'text-red-700' };
-                    return (
-                      <div key={s} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 text-right">
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">{s}</p>
-                        <p className={`text-3xl font-bold ${colors[s]}`}>{labCases.filter((c) => c.status === s).length}</p>
-                      </div>
-                    );
-                  })}
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
+                  <StatusDonut data={labStatusData} total={labCases.length} centerLabel="إجمالي" />
                 </div>
               </div>
-
-              {/* رابط صفحة الصلاحيات — للأدمن فقط */}
-              {isAdmin && <button onClick={() => navigate('/permissions')}
-                className="w-full bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 mb-8 flex items-center justify-between hover:shadow-md hover:border-slate-300 dark:hover:border-slate-600 transition-all text-right group">
-                <div className="inline-flex items-center gap-2 text-sm font-medium text-slate-600 dark:text-slate-400 group-hover:gap-3 transition-all">
-                  إدارة الصلاحيات <FiArrowLeft className="w-4 h-4" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white">صلاحيات الموظفين</p>
-                    <p className="text-xs text-gray-400 dark:text-gray-500">تحكم بصلاحيات كل موظف من مكان واحد</p>
-                  </div>
-                  <div className="w-10 h-10 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center">
-                    <MdAdminPanelSettings className="text-white text-xl" />
-                  </div>
-                </div>
-              </button>}
-
-              {/* إدارة الأطباء — للأدمن فقط */}
-              {isAdmin && <>
-              <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
-                <h3 className="text-base font-bold text-gray-900 dark:text-white mb-4">إدارة فريق الأطباء</h3>
-                <div className="flex gap-2 mb-4">
-                  <button onClick={handleAddDoctor} className="px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium flex items-center gap-1">
-                    <MdAdd className="w-4 h-4" /> إضافة
-                  </button>
-                  <input type="text" value={newDoctorName} onChange={(e) => setNewDoctorName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddDoctor()}
-                    placeholder="اسم الطبيب الجديد" className="flex-1 px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:bg-white dark:focus:bg-gray-600 focus:border-gray-300" />
-                </div>
-                <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                  {doctors.map((doc) => (
-                    <div key={doc.id} className="flex items-center justify-between py-2.5 gap-2">
-                      <div className="flex gap-1">
-                        {editingDoctorId === doc.id ? (
-                          <>
-                            <button onClick={() => handleUpdateDoctor(doc.id)} className="p-1.5 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg"><MdCheck className="w-4 h-4" /></button>
-                            <button onClick={() => setEditingDoctorId(null)} className="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"><MdClose className="w-4 h-4" /></button>
-                          </>
-                        ) : (
-                          <>
-                            <button onClick={() => { setEditingDoctorId(doc.id); setEditingDoctorName(doc.name); }} className="p-1.5 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg"><MdEdit className="w-4 h-4" /></button>
-                            <button onClick={() => handleDeleteDoctor(doc.id)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg"><MdDelete className="w-4 h-4" /></button>
-                          </>
-                        )}
-                      </div>
-                      {editingDoctorId === doc.id
-                        ? <input type="text" value={editingDoctorName} onChange={(e) => setEditingDoctorName(e.target.value)} className="flex-1 px-2 py-1 border border-blue-300 dark:border-blue-600 rounded-lg text-sm focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
-                        : <p className="text-sm font-medium text-gray-900 dark:text-white">{doc.name}</p>
-                      }
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>}
 
           {/* إدارة الإشعارات — للأدمن فقط */}
-          {isAdmin &&
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
-            <div className="flex items-center gap-2 mb-5">
-              <MdCampaign className="w-5 h-5 text-red-500" />
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">إرسال إشعار للموظفين</h3>
+          {isAdmin && showAnnouncementsModal &&
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" dir="rtl">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6">
+            <div className="flex items-center justify-between mb-5">
+              <button onClick={() => setShowAnnouncementsModal(false)} className="p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg">
+                <MdClose className="w-5 h-5" />
+              </button>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-gray-900 dark:text-white">إرسال إشعار للموظفين</h3>
+                <MdCampaign className="w-5 h-5 text-red-500" />
+              </div>
             </div>
 
             {/* نموذج الإشعار */}
@@ -420,6 +325,7 @@ export const HomePage = () => {
                 ))}
               </div>
             )}
+          </div>
           </div>}
             </>
           )}
@@ -446,6 +352,30 @@ export const HomePage = () => {
                 <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">عرض وإدارة أسعار وخدمات الشهر</p>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
               </button>
+              {isAdmin && (
+                <button onClick={() => navigate('/permissions')} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 hover:shadow-lg hover:border-slate-300 dark:hover:border-slate-600 transition-all text-right group">
+                  <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-slate-600 to-slate-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdAdminPanelSettings className="text-white text-xl" /></div></div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">صلاحيات الموظفين</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">تحكم بصلاحيات كل موظف من مكان واحد</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+                </button>
+              )}
+              {isAdmin && (
+                <button onClick={() => setShowAnnouncementsModal(true)} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 hover:shadow-lg hover:border-red-200 dark:hover:border-red-700 transition-all text-right group">
+                  <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdCampaign className="text-white text-xl" /></div></div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">الإشعارات</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">إرسال إشعارات للموظفين ومتابعة من اطلع عليها</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+                </button>
+              )}
+              {isAdmin && (
+                <button onClick={() => navigate('/doctors')} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 hover:shadow-lg hover:border-cyan-200 dark:hover:border-cyan-700 transition-all text-right group">
+                  <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdMedicalServices className="text-white text-xl" /></div></div>
+                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">فريق الأطباء</h3>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">إدارة قائمة الأطباء في العيادة</p>
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -464,22 +394,6 @@ export const HomePage = () => {
 
         {!loadingStats && (
           <>
-            {/* كرت طلب الإجازة */}
-            <div className="mb-6">
-              <button onClick={() => navigate('/leave')}
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 rounded-2xl p-6 text-white text-right hover:shadow-lg transition-all group">
-                <div className="flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/20 rounded-lg text-sm font-medium group-hover:bg-white/30 transition-all">
-                    افتح الآن <MdAssignment className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <p className="text-white/70 text-sm mb-1">استقبال المرضى</p>
-                    <p className="text-2xl font-bold">طلبات الإجازة المرضية</p>
-                  </div>
-                </div>
-              </button>
-            </div>
-
             {/* داشبورد الموظف */}
             <div className="mb-8">
               <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-6 mb-6 text-white text-right">
@@ -491,34 +405,16 @@ export const HomePage = () => {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-5 text-right">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">إجمالي leads</p>
-                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{myTotal}</p>
-                </div>
-                {STATUSES.map((s) => {
-                  const count = myLeads.filter((l) => l.status === s).length;
-                  return (
-                    <div key={s} className={`rounded-2xl border shadow-sm p-5 text-right ${statusColors[s]}`}>
-                      <p className="text-xs opacity-70 mb-1">{s}</p>
-                      <p className="text-3xl font-bold">{count}</p>
-                    </div>
-                  );
-                })}
-              </div>
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-2xl font-bold text-green-600 dark:text-green-400">{myRate}%</span>
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-300">نسبة إنجازك</span>
-                </div>
-                <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-4">
-                  <div className="bg-gradient-to-r from-green-500 to-green-600 h-4 rounded-full transition-all duration-700 flex items-center justify-end pr-2" style={{ width: `${Math.max(myRate, 5)}%` }}>
-                    {myRate > 10 && <span className="text-white text-xs font-bold">{myRate}%</span>}
+                <div className="flex flex-col lg:flex-row items-center gap-8">
+                  <StatusDonut data={myStatusData} total={myTotal} centerLabel="إجمالي" />
+                  <div className="flex flex-col items-center gap-2">
+                    <RadialProgress percentage={myRate} label="نسبة إنجازك" color="#22c55e" />
+                    <div className="flex justify-between gap-4 text-xs text-gray-400 dark:text-gray-500">
+                      <span>منجز: {myDone}</span>
+                      <span>متبقي: {myTotal - myDone}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="flex justify-between text-xs text-gray-400 dark:text-gray-500 mt-2">
-                  <span>منجز: {myDone}</span>
-                  <span>متبقي: {myTotal - myDone}</span>
                 </div>
               </div>
             </div>
@@ -553,6 +449,12 @@ export const HomePage = () => {
               <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">حجوزات المرضى الجدد</h3>
               <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">تقويم حجوزاتك للمرضى</p>
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
+            </button>
+            <button onClick={() => navigate('/leave')} className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-8 hover:shadow-lg hover:border-purple-200 dark:hover:border-purple-700 transition-all text-right group">
+              <div className="mb-4"><div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-purple-700 rounded-xl flex items-center justify-center group-hover:shadow-lg transition-shadow"><MdAssignment className="text-white text-xl" /></div></div>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">طلبات الإجازة المرضية</h3>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">استقبال المرضى</p>
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-lg text-sm font-medium">افتح الآن<FiArrowLeft className="w-4 h-4" /></div>
             </button>
           </div>
         </div>

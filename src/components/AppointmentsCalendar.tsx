@@ -156,12 +156,12 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
                 .sort((a, b) => new Date(a.appointment_at!).getTime() - new Date(b.appointment_at!).getTime())
                 .map((l) => (
                   <div key={l.id} className="bg-green-50 dark:bg-green-900/20 border border-green-100 dark:border-green-800 rounded-xl p-3 text-right">
-                    <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-start justify-between mb-1">
+                      <span className="font-bold text-gray-900 dark:text-white text-sm">{l.name}</span>
                       <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400 font-bold">
                         <MdAccessTime className="w-3.5 h-3.5" />
                         {formatTime(l.appointment_at!)}
                       </span>
-                      <span className="font-bold text-gray-900 dark:text-white text-sm">{l.name}</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-gray-400 dark:text-gray-500">{l.phone || '—'}</span>
