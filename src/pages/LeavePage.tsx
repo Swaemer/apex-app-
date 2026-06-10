@@ -70,8 +70,8 @@ export const LeavePage = () => {
     if (!form.days_count) { toast.error('أدخل عدد الأيام'); return; }
     if (!form.doctor_name) { toast.error('اختر الطبيب المعالج'); return; }
     try {
-      const birth_date = (form.birth_day || form.birth_month || form.birth_year)
-        ? `${form.birth_day.padStart(2, '0')}/${form.birth_month.padStart(2, '0')}/${form.birth_year}`
+      const birth_date = (form.birth_day && form.birth_month && form.birth_year)
+        ? `${form.birth_year.padStart(4, '0')}-${form.birth_month.padStart(2, '0')}-${form.birth_day.padStart(2, '0')}`
         : null;
       await addLeaveRequest({
         patient_name: form.patient_name.trim(),
