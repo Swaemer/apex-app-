@@ -399,10 +399,10 @@ export const HomePage = () => {
               <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-6 mb-6 text-white text-right">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-white/70 text-sm mb-1">مرحباً</p>
-                    <p className="text-xl font-bold">{userName}</p>
+                    <p className="text-white/70 text-sm mb-1">مرحباً {userName}</p>
+                    <p className="text-xl font-bold">{motivation.text}</p>
                   </div>
-                  <p className="text-lg font-bold">{motivation.text}</p>
+                  <span className="text-5xl">{motivation.emoji}</span>
                 </div>
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
