@@ -179,8 +179,8 @@ export const HomePage = () => {
 
               {/* أداء الفريق */}
               {employees.length > 0 && (
-                <div className="mb-8">
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">أداء الفريق</h2>
+                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">أداء الفريق</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {employees.map((emp) => {
                       const empLeads = leads.filter((l) => l.assigned_to === emp.name);
@@ -188,7 +188,7 @@ export const HomePage = () => {
                       const empRate = empLeads.length > 0 ? Math.round((empDone / empLeads.length) * 100) : 0;
                       const empStatusData = STATUSES.map((s) => ({ name: s, value: empLeads.filter((l) => l.status === s).length, color: statusHexColors[s] }));
                       return (
-                        <div key={emp.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 text-right">
+                        <div key={emp.id} className="bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-100 dark:border-gray-700 p-4 text-right">
                           <div className="flex items-start justify-between mb-4">
                             <div><p className="font-bold text-gray-900 dark:text-white">{emp.name}</p><p className="text-xs text-gray-400 dark:text-gray-500">{empLeads.length} lead</p></div>
                             <span className="text-xs font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-lg border border-green-100 dark:border-green-800">{empRate}% إنجاز</span>
