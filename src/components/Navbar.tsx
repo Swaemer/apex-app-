@@ -32,7 +32,9 @@ export const Navbar = () => {
   useEffect(() => {
     const updateDateTime = () => {
       const now = new Date();
-      setCurrentTime(now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true }));
+      const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true })
+        .replace('AM', 'ص').replace('PM', 'م');
+      setCurrentTime(time);
       setCurrentDate(now.toLocaleDateString('ar-SA', { weekday: 'long', month: 'long', day: 'numeric' }));
     };
     updateDateTime();
