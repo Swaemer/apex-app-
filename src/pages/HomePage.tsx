@@ -53,12 +53,9 @@ const MonthlyTargetCard = ({
 }: MonthlyTargetCardProps) => (
   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
     <div className="flex items-start justify-between mb-4">
-      <div>
-        <div className="flex items-center gap-2">
-          <span className="text-xl leading-none">🎯</span>
-          <h2 className="text-lg font-bold">تارقت الشهر</h2>
-        </div>
-        <p className="text-white/70 text-sm mt-1">تارقت الحجز</p>
+      <div className="flex items-center gap-2">
+        <span className="text-xl leading-none">🎯</span>
+        <h2 className="text-lg font-bold">تارقت الشهر</h2>
       </div>
       {editable && !editingTarget && (
         <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
@@ -107,6 +104,7 @@ const MonthlyTargetCard = ({
                 <span className="text-4xl font-bold">{monthlyTargetAmount.toLocaleString('en-US')}</span>
                 <span className="text-white/70 text-lg mb-1">ر.س</span>
               </div>
+              <p className="text-white/70 text-sm mt-1">تارقت الحجز</p>
             </div>
           </>
         )}
