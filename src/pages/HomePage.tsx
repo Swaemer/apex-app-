@@ -103,7 +103,7 @@ const MonthlyTargetCard = ({
             <div className="block sm:hidden h-px bg-white/20" />
             <div className="flex-1 flex flex-col items-center justify-center text-center">
               <span className="text-white/70 text-sm mb-1">المبلغ المستهدف</span>
-              <span className="text-4xl font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')}</span>
+              <span className="text-4xl font-bold">{monthlyTargetAmount.toLocaleString('en-US')}</span>
               <span className="text-white/70 text-sm mt-1">ر.س</span>
             </div>
           </>
