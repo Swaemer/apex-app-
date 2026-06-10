@@ -60,7 +60,7 @@ export const Navbar = () => {
     }`;
 
   return (
-    <aside className="fixed top-0 right-0 bottom-0 w-56 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-sm z-50 flex flex-col" dir="rtl">
+    <aside className="fixed top-0 right-0 bottom-0 w-56 bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 shadow-sm z-50 flex flex-col font-serif" dir="rtl">
 
       {/* الشعار + الساعة */}
       <div className="flex flex-col items-center pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
