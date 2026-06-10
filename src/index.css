@@ -78,3 +78,12 @@ html, body, #root {
 html.dark, html.dark body, html.dark #root {
   background-color: rgb(3 7 18);
 }
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px rgba(255, 255, 255, 0.3); opacity: 0.85; }
+  50% { box-shadow: 0 0 14px rgba(255, 255, 255, 0.9); opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 1.8s ease-in-out infinite;
+}

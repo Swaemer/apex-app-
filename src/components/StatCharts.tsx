@@ -117,11 +117,20 @@ export const CountUp = ({ value, duration = 800, className }: CountUpProps) => {
 
     let frame: number;
     const tick = (now: number) => {
-      const progress = Math.min((now - start) / duration, 1);
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(from + (value - from) * eased));
-      if (progress < 1) frame = requestAnimationFrame(tick);
-      else fromRef.current = value;
+      const base = from + (value - from) * eased;
+      // تأثير تردد يهتز حول القيمة ثم يستقر عليها
+      const jitterAmplitude = (1 - progress) * Math.max(Math.abs(value - from), 3) * 0.4;
+      const jitter = Math.sin(elapsed / 60) * jitterAmplitude;
+      if (progress < 1) {
+        setDisplay(Math.max(0, Math.round(base + jitter)));
+        frame = requestAnimationFrame(tick);
+      } else {
+        setDisplay(value);
+        fromRef.current = value;
+      }
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);

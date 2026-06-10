@@ -81,23 +81,31 @@ const MonthlyTargetCard = ({
         </div>
       </div>
     ) : monthlyTarget > 0 ? (
-      <>
-        <div className="flex items-end justify-between mb-3">
-          <div className="flex items-end gap-2">
-            <CountUp value={monthlyLeadsCount} className="text-4xl font-bold" />
-            <span className="text-white/70 text-lg mb-1">/ {monthlyTarget} حجز</span>
+      <div className="flex flex-col sm:flex-row items-stretch gap-6">
+        <div className="flex-1">
+          <div className="flex items-end justify-between mb-3">
+            <div className="flex items-end gap-2">
+              <CountUp value={monthlyLeadsCount} duration={1500} className="text-4xl font-bold" />
+              <span className="text-white/70 text-lg mb-1">/ {monthlyTarget} حجز</span>
+            </div>
+            <span className="text-white/70 text-sm">{targetPercentage}%</span>
           </div>
-          <span className="text-white/70 text-sm">{targetPercentage}%</span>
-        </div>
-        <div className="w-full h-2.5 rounded-full bg-white/20 overflow-hidden mb-3">
-          <div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${Math.min(targetPercentage, 100)}%` }} />
+          <div className="w-full h-2.5 rounded-full bg-white/20 overflow-hidden">
+            <div className="h-full bg-white rounded-full animate-pulse-glow transition-all duration-700" style={{ width: `${Math.min(targetPercentage, 100)}%` }} />
+          </div>
         </div>
         {monthlyTargetAmount > 0 && (
-          <p className="text-white/80 text-sm">
-            المبلغ المستهدف: <span className="font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')} ر.س</span>
-          </p>
+          <>
+            <div className="hidden sm:block w-px bg-white/20" />
+            <div className="block sm:hidden h-px bg-white/20" />
+            <div className="flex-1 flex flex-col items-center justify-center text-center">
+              <span className="text-white/70 text-sm mb-1">المبلغ المستهدف</span>
+              <span className="text-4xl font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')}</span>
+              <span className="text-white/70 text-sm mt-1">ر.س</span>
+            </div>
+          </>
         )}
-      </>
+      </div>
     ) : (
       <p className="text-white/70 text-sm">لم يتم تحديد تارقت لهذا الشهر بعد</p>
     )}
