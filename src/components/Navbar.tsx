@@ -66,6 +66,10 @@ export const Navbar = () => {
       {/* الشعار + الساعة */}
       <div className="flex flex-col items-center pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
         <img src="/logosa.svg" alt="logo" className="w-24 h-24 object-contain" />
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+          <span className="text-xs text-gray-400 dark:text-gray-500">فرع بريدة</span>
+        </div>
         <div className="w-12 border-t border-gray-100 dark:border-gray-800 my-2" />
         <div dir="ltr" className="flex items-baseline justify-center gap-1 text-2xl font-bold text-gray-900 dark:text-white font-mono mt-2">
           <span>{currentTime.replace(/\s*(AM|PM)$/, '')}</span>
