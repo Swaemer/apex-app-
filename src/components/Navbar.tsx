@@ -68,8 +68,8 @@ export const Navbar = () => {
         <img src="/logosa.svg" alt="logo" className="w-20 h-20 object-contain" />
         <div className="w-12 border-t border-gray-100 dark:border-gray-800 my-2" />
         <p className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-2">
+          <span className="text-sm align-middle">{currentTime.match(/(AM|PM)$/)?.[0]} </span>
           {currentTime.replace(/\s*(AM|PM)$/, '')}
-          <span className="text-sm align-middle"> {currentTime.match(/(AM|PM)$/)?.[0]}</span>
         </p>
         <p className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">أهلاً، <span className="font-bold text-gray-700 dark:text-gray-200">{user?.name}</span></p>
