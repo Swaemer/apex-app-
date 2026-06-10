@@ -30,6 +30,80 @@ const labStatusHexColors: Record<string, string> = {
   'أعيد للمعمل':  '#ef4444',
 };
 
+interface MonthlyTargetCardProps {
+  monthlyTarget: number;
+  monthlyTargetAmount: number;
+  monthlyLeadsCount: number;
+  targetPercentage: number;
+  editable?: boolean;
+  editingTarget?: boolean;
+  setEditingTarget?: (v: boolean) => void;
+  targetInput?: string;
+  setTargetInput?: (v: string) => void;
+  targetAmountInput?: string;
+  setTargetAmountInput?: (v: string) => void;
+  savingTarget?: boolean;
+  onSave?: () => void;
+}
+
+const MonthlyTargetCard = ({
+  monthlyTarget, monthlyTargetAmount, monthlyLeadsCount, targetPercentage, editable = false,
+  editingTarget = false, setEditingTarget, targetInput = '', setTargetInput,
+  targetAmountInput = '', setTargetAmountInput, savingTarget = false, onSave,
+}: MonthlyTargetCardProps) => (
+  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
+    <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center gap-2">
+        <MdFlag className="w-5 h-5" />
+        <h2 className="text-lg font-bold">تارقت الشهر</h2>
+      </div>
+      {editable && !editingTarget && (
+        <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+          <MdEdit className="w-4 h-4" />
+        </button>
+      )}
+    </div>
+    {editingTarget ? (
+      <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
+        <div>
+          <label className="block text-xs text-white/70 mb-1">عدد الحجوزات المستهدف</label>
+          <input type="number" min="0" value={targetInput} onChange={(e) => setTargetInput?.(e.target.value)}
+            className="w-28 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" autoFocus />
+        </div>
+        <div>
+          <label className="block text-xs text-white/70 mb-1">المبلغ (ر.س)</label>
+          <input type="number" min="0" value={targetAmountInput} onChange={(e) => setTargetAmountInput?.(e.target.value)}
+            className="w-32 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" />
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={onSave} disabled={savingTarget} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">حفظ</button>
+          <button onClick={() => setEditingTarget?.(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">إلغاء</button>
+        </div>
+      </div>
+    ) : monthlyTarget > 0 ? (
+      <>
+        <div className="flex items-end justify-between mb-3">
+          <div className="flex items-end gap-2">
+            <CountUp value={monthlyLeadsCount} className="text-4xl font-bold" />
+            <span className="text-white/70 text-lg mb-1">/ {monthlyTarget} حجز</span>
+          </div>
+          <span className="text-white/70 text-sm">{targetPercentage}%</span>
+        </div>
+        <div className="w-full h-2.5 rounded-full bg-white/20 overflow-hidden mb-3">
+          <div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${Math.min(targetPercentage, 100)}%` }} />
+        </div>
+        {monthlyTargetAmount > 0 && (
+          <p className="text-white/80 text-sm">
+            المبلغ المستهدف: <span className="font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')} ر.س</span>
+          </p>
+        )}
+      </>
+    ) : (
+      <p className="text-white/70 text-sm">لم يتم تحديد تارقت لهذا الشهر بعد</p>
+    )}
+  </div>
+);
+
 const motivationalMessages = (rate: number): { text: string; emoji: string } => {
   if (rate === 0)  return { text: 'ابدأ يومك بخطوة، كل إنجاز يبدأ بالأول!', emoji: '🚀' };
   if (rate < 25)  return { text: 'بداية ممتازة، واصل التقدم!', emoji: '💪' };
@@ -69,16 +143,16 @@ export const HomePage = () => {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const allLeads = await getLeads();
+        const [allLeads, target] = await Promise.all([getLeads(), getMonthlyTarget(currentMonthYear)]);
+        setLeads(allLeads);
+        setMonthlyTargetState(target?.target ?? 0);
+        setMonthlyTargetAmountState(target?.target_amount ?? 0);
         if (user.isAdmin) {
           setCanViewAdmin(true);
-          setLeads(allLeads);
-          const [emps, cases, anns, target] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements(), getMonthlyTarget(currentMonthYear)]);
+          const [emps, cases, anns] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements()]);
           setEmployees(emps);
           setLabCases(cases);
           setAnnouncements(anns);
-          setMonthlyTargetState(target?.target ?? 0);
-          setMonthlyTargetAmountState(target?.target_amount ?? 0);
         } else {
           // تحقق من صلاحية عرض الداشبورد
           const { data: profile } = await supabase
@@ -89,7 +163,6 @@ export const HomePage = () => {
 
           if (profile?.can_view_admin) {
             setCanViewAdmin(true);
-            setLeads(allLeads);
             const [emps, cases] = await Promise.all([getEmployees(), getLabCases()]);
             setEmployees(emps);
             setLabCases(cases);
@@ -176,7 +249,7 @@ export const HomePage = () => {
   const labStatusData = labStatuses.map((s) => ({ name: s, value: labCases.filter((c) => c.status === s).length, color: labStatusHexColors[s] }));
 
   // تارقت الشهر
-  const monthlyLeadsCount = leads.filter((l) => l.created_at?.slice(0, 7) === currentMonthYear).length;
+  const monthlyLeadsCount = leads.filter((l) => l.status === 'تم حجز الموعد' && l.created_at?.slice(0, 7) === currentMonthYear).length;
   const targetPercentage = monthlyTarget > 0 ? Math.round((monthlyLeadsCount / monthlyTarget) * 100) : 0;
 
   // إحصائيات الموظف
@@ -193,57 +266,21 @@ export const HomePage = () => {
           {!loadingStats && (
             <>
               {/* تارقت الشهر */}
-              <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <MdFlag className="w-5 h-5" />
-                    <h2 className="text-lg font-bold">تارقت الشهر</h2>
-                  </div>
-                  {isAdmin && !editingTarget && (
-                    <button onClick={() => { setTargetInput(String(monthlyTarget)); setTargetAmountInput(String(monthlyTargetAmount)); setEditingTarget(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-                      <MdEdit className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                {editingTarget ? (
-                  <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
-                    <div>
-                      <label className="block text-xs text-white/70 mb-1">عدد الليدز</label>
-                      <input type="number" min="0" value={targetInput} onChange={(e) => setTargetInput(e.target.value)}
-                        className="w-28 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" autoFocus />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-white/70 mb-1">المبلغ (ر.س)</label>
-                      <input type="number" min="0" value={targetAmountInput} onChange={(e) => setTargetAmountInput(e.target.value)}
-                        className="w-32 px-3 py-2 rounded-lg text-gray-900 text-sm focus:outline-none" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button onClick={handleSaveTarget} disabled={savingTarget} className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors disabled:opacity-50">حفظ</button>
-                      <button onClick={() => setEditingTarget(false)} className="px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-sm font-medium transition-colors">إلغاء</button>
-                    </div>
-                  </div>
-                ) : monthlyTarget > 0 ? (
-                  <>
-                    <div className="flex items-end justify-between mb-3">
-                      <div className="flex items-end gap-2">
-                        <CountUp value={monthlyLeadsCount} className="text-4xl font-bold" />
-                        <span className="text-white/70 text-lg mb-1">/ {monthlyTarget} ليد</span>
-                      </div>
-                      <span className="text-white/70 text-sm">{targetPercentage}%</span>
-                    </div>
-                    <div className="w-full h-2.5 rounded-full bg-white/20 overflow-hidden mb-3">
-                      <div className="h-full bg-white rounded-full transition-all duration-700" style={{ width: `${Math.min(targetPercentage, 100)}%` }} />
-                    </div>
-                    {monthlyTargetAmount > 0 && (
-                      <p className="text-white/80 text-sm">
-                        المبلغ المستهدف: <span className="font-bold">{monthlyTargetAmount.toLocaleString('ar-SA')} ر.س</span>
-                      </p>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-white/70 text-sm">لم يتم تحديد تارقت لهذا الشهر بعد</p>
-                )}
-              </div>
+              <MonthlyTargetCard
+                monthlyTarget={monthlyTarget}
+                monthlyTargetAmount={monthlyTargetAmount}
+                monthlyLeadsCount={monthlyLeadsCount}
+                targetPercentage={targetPercentage}
+                editable={isAdmin}
+                editingTarget={editingTarget}
+                setEditingTarget={setEditingTarget}
+                targetInput={targetInput}
+                setTargetInput={setTargetInput}
+                targetAmountInput={targetAmountInput}
+                setTargetAmountInput={setTargetAmountInput}
+                savingTarget={savingTarget}
+                onSave={handleSaveTarget}
+              />
 
               {/* إحصائيات Leads */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
@@ -465,6 +502,14 @@ export const HomePage = () => {
       <div className="max-w-6xl mx-auto">
         {!loadingStats && (
           <>
+            {/* تارقت الشهر */}
+            <MonthlyTargetCard
+              monthlyTarget={monthlyTarget}
+              monthlyTargetAmount={monthlyTargetAmount}
+              monthlyLeadsCount={monthlyLeadsCount}
+              targetPercentage={targetPercentage}
+            />
+
             {/* داشبورد الموظف */}
             <div className="mb-8">
               <div className="bg-gradient-to-r from-slate-700 to-slate-800 rounded-2xl p-6 mb-6 text-white text-right">
