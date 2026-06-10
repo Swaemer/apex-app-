@@ -34,31 +34,31 @@
 
 @font-face {
   font-family: 'Thmanyah Sans';
-  src: url('/src/assets/fonts/thmanyahsans-Light.otf') format('opentype');
+  src: url('/src/assets/fonts/thmanyahsans-Light.woff2') format('woff2');
   font-weight: 300;
 }
 
 @font-face {
   font-family: 'Thmanyah Sans';
-  src: url('/src/assets/fonts/thmanyahsans-Regular.otf') format('opentype');
+  src: url('/src/assets/fonts/thmanyahsans-Regular.woff2') format('woff2');
   font-weight: 400;
 }
 
 @font-face {
   font-family: 'Thmanyah Sans';
-  src: url('/src/assets/fonts/thmanyahsans-Medium.otf') format('opentype');
+  src: url('/src/assets/fonts/thmanyahsans-Medium.woff2') format('woff2');
   font-weight: 500;
 }
 
 @font-face {
   font-family: 'Thmanyah Sans';
-  src: url('/src/assets/fonts/thmanyahsans-Bold.otf') format('opentype');
+  src: url('/src/assets/fonts/thmanyahsans-Bold.woff2') format('woff2');
   font-weight: 700;
 }
 
 @font-face {
   font-family: 'Thmanyah Sans';
-  src: url('/src/assets/fonts/thmanyahsans-Black.otf') format('opentype');
+  src: url('/src/assets/fonts/thmanyahsans-Black.woff2') format('woff2');
   font-weight: 900;
 }
 
