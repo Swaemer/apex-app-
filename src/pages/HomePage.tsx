@@ -53,7 +53,7 @@ const MonthlyTargetCard = ({
 }: MonthlyTargetCardProps) => (
   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
     <div className="flex items-stretch gap-6">
-      <div className="flex flex-col items-center justify-center text-center gap-2">
+      <div className="flex-1 flex flex-col items-center justify-center text-center gap-2">
         <span className="text-3xl leading-none">🎯</span>
         <h2 className="text-lg font-bold">تارقت الشهر</h2>
         {editable && !editingTarget && (
