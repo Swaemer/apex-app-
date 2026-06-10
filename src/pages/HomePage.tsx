@@ -52,17 +52,18 @@ const MonthlyTargetCard = ({
   targetAmountInput = '', setTargetAmountInput, savingTarget = false, onSave,
 }: MonthlyTargetCardProps) => (
   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
-    <div className="flex items-start justify-between pb-3 mb-4 border-b border-white/20">
-      <div className="flex items-center gap-2">
-        <span className="text-xl leading-none">🎯</span>
+    <div className="flex items-stretch gap-6">
+      <div className="flex flex-col items-center justify-center text-center gap-2">
+        <span className="text-3xl leading-none">🎯</span>
         <h2 className="text-lg font-bold">تارقت الشهر</h2>
+        {editable && !editingTarget && (
+          <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+            <MdEdit className="w-4 h-4" />
+          </button>
+        )}
       </div>
-      {editable && !editingTarget && (
-        <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-          <MdEdit className="w-4 h-4" />
-        </button>
-      )}
-    </div>
+      <div className="w-px bg-white/20" />
+      <div className="flex-1">
     {editingTarget ? (
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
         <div>
@@ -106,6 +107,8 @@ const MonthlyTargetCard = ({
     ) : (
       <p className="text-white/70 text-sm">لم يتم تحديد تارقت لهذا الشهر بعد</p>
     )}
+      </div>
+    </div>
   </div>
 );
 
