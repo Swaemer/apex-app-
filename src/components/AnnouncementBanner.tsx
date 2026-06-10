@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { MdCampaign, MdCheck } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import { getActiveAnnouncements, markAsRead } from '../services/announcementService';
@@ -7,6 +8,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const AnnouncementBanner = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [acknowledged, setAcknowledged] = useState<number[]>([]);
   const [current, setCurrent] = useState(0);
@@ -32,6 +34,7 @@ export const AnnouncementBanner = () => {
   }, [user]);
 
   if (!user || user.isAdmin) return null;
+  if (['/auth', '/reset-password'].includes(location.pathname)) return null;
 
   const visible = announcements.filter((a) => {
     if (acknowledged.includes(a.id)) return false;
