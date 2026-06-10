@@ -55,7 +55,7 @@ export const Navbar = () => {
   if (location.pathname === '/auth') return null;
 
   const linkClass = (path: string) =>
-    `w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+    `w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
       location.pathname === path
         ? 'bg-slate-700 text-white shadow-sm'
         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -67,6 +67,7 @@ export const Navbar = () => {
       {/* الشعار + الساعة */}
       <div className="flex flex-col items-center pt-6 pb-4 border-b border-gray-100 dark:border-gray-800">
         <img src="/logosa.svg" alt="logo" className="w-20 h-20 object-contain" />
+        <div className="w-12 border-t border-gray-100 dark:border-gray-800 my-2" />
         <p className="text-2xl font-bold text-gray-900 dark:text-white font-mono mt-2">{currentTime}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">أهلاً، <span className="font-bold text-gray-700 dark:text-gray-200">{user?.name}</span></p>
