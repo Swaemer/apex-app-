@@ -141,6 +141,24 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-green-400 inline-block" /> يوم فيه حجز</span>
             <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-slate-700 inline-block" /> اليوم المحدد</span>
           </div>
+
+          {/* إجمالي الحجوزات للشهر */}
+          {appointments.filter((l) => {
+            const d = new Date(l.appointment_at!);
+            return d.getFullYear() === year && d.getMonth() === month;
+          }).length > 0 && (
+            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                إجمالي حجوزات {ARABIC_MONTHS[month]}:
+                <span className="font-bold text-gray-800 dark:text-gray-200 mr-1">
+                  {appointments.filter((l) => {
+                    const d = new Date(l.appointment_at!);
+                    return d.getFullYear() === year && d.getMonth() === month;
+                  }).length}
+                </span>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* قائمة الحجوزات لليوم المحدد */}
@@ -263,24 +281,6 @@ export const AppointmentsCalendar = ({ leads }: Props) => {
           ) : (
             <div className="bg-gray-50 dark:bg-gray-700/40 rounded-xl p-8 text-center">
               <p className="text-gray-400 dark:text-gray-500 text-sm">لا توجد حجوزات هذا اليوم</p>
-            </div>
-          )}
-
-          {/* إجمالي الحجوزات للشهر */}
-          {appointments.filter((l) => {
-            const d = new Date(l.appointment_at!);
-            return d.getFullYear() === year && d.getMonth() === month;
-          }).length > 0 && (
-            <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                إجمالي حجوزات {ARABIC_MONTHS[month]}:
-                <span className="font-bold text-gray-800 dark:text-gray-200 mr-1">
-                  {appointments.filter((l) => {
-                    const d = new Date(l.appointment_at!);
-                    return d.getFullYear() === year && d.getMonth() === month;
-                  }).length}
-                </span>
-              </p>
             </div>
           )}
         </div>
