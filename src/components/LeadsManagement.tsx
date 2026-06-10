@@ -60,7 +60,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [modalHour, setModalHour] = useState('');
   const [modalDoctor, setModalDoctor] = useState('');
   const [modalSaving, setModalSaving] = useState(false);
-  const PAGE_SIZE = 250;
+  const PAGE_SIZE = 10;
 
   const assignUser = (index: number, total: number): string => {
     if (!config.distribution?.enabled || !config.distribution.users.length)
