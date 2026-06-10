@@ -52,16 +52,19 @@ const MonthlyTargetCard = ({
   targetAmountInput = '', setTargetAmountInput, savingTarget = false, onSave,
 }: MonthlyTargetCardProps) => (
   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
-    <div className="flex items-center justify-between mb-4">
-      <div className="flex items-center gap-2">
+    <div className="grid grid-cols-3 items-center mb-4">
+      <div />
+      <div className="flex items-center justify-center gap-2">
         <span className="text-xl leading-none">🎯</span>
         <h2 className="text-lg font-bold">تارقت الشهر</h2>
       </div>
-      {editable && !editingTarget && (
-        <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
-          <MdEdit className="w-4 h-4" />
-        </button>
-      )}
+      <div className="flex justify-end">
+        {editable && !editingTarget && (
+          <button onClick={() => { setTargetInput?.(String(monthlyTarget)); setTargetAmountInput?.(String(monthlyTargetAmount)); setEditingTarget?.(true); }} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+            <MdEdit className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
     {editingTarget ? (
       <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
