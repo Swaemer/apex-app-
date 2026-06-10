@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdFlag, MdEdit } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdEdit } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
 import { StatusDonut, RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
 import { getLeads, getEmployees } from '../services/leadsService';
@@ -54,7 +54,7 @@ const MonthlyTargetCard = ({
   <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-6 mb-8 text-white">
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <MdFlag className="w-5 h-5" />
+        <span className="text-xl leading-none">🎯</span>
         <h2 className="text-lg font-bold">تارقت الشهر</h2>
       </div>
       {editable && !editingTarget && (

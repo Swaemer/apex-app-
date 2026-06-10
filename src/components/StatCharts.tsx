@@ -107,25 +107,28 @@ interface CountUpProps {
   className?: string;
 }
 
-export const CountUp = ({ value, duration = 800, className }: CountUpProps) => {
-  const [display, setDisplay] = useState(0);
-  const fromRef = useRef(0);
+export const CountUp = ({ value, duration = 1500, className }: CountUpProps) => {
+  const [display, setDisplay] = useState(value);
+  const fromRef = useRef(value);
 
   useEffect(() => {
     const from = fromRef.current;
     const start = performance.now();
+    const wobbleInterval = 100;
+    let lastWobble = 0;
 
     let frame: number;
     const tick = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const base = from + (value - from) * eased;
-      // تأثير تردد يهتز حول القيمة ثم يستقر عليها
-      const jitterAmplitude = (1 - progress) * Math.max(Math.abs(value - from), 3) * 0.4;
-      const jitter = Math.sin(elapsed / 60) * jitterAmplitude;
       if (progress < 1) {
-        setDisplay(Math.max(0, Math.round(base + jitter)));
+        // تأثير تردد: يقفز بين أرقام قريبة كأنه يحتار قبل أن يستقر
+        if (elapsed - lastWobble >= wobbleInterval) {
+          lastWobble = elapsed;
+          const amplitude = Math.max(Math.abs(value - from), 3) * (1 - progress);
+          const wobble = Math.round((Math.random() * 2 - 1) * amplitude);
+          setDisplay(Math.max(0, value + wobble));
+        }
         frame = requestAnimationFrame(tick);
       } else {
         setDisplay(value);
