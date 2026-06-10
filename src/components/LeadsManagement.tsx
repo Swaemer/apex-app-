@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { MdRefresh } from 'react-icons/md';
 import { getLeads, getLeadPhoneIdMap, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, updateLeadDoctor, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
@@ -527,14 +526,6 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                 )}
               </>
             )}
-            <button
-              onClick={loadLeads}
-              disabled={loading}
-              className="px-6 py-3 bg-gradient-to-r from-slate-600 to-slate-700 text-white rounded-lg font-medium flex items-center gap-2 hover:shadow-lg transition-all disabled:opacity-50"
-            >
-              <MdRefresh className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} />
-              تحديث
-            </button>
           </div>
         </div>
 
