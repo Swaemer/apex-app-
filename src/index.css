@@ -70,6 +70,10 @@
   font-family: 'Thmanyah Serif', serif;
 }
 
+h1, h2 {
+  font-family: 'Thmanyah Serif', serif;
+}
+
 html, body, #root {
   min-height: 100%;
   background-color: white;
