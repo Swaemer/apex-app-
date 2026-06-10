@@ -71,11 +71,11 @@ export const Navbar = () => {
           <span>{currentTime.replace(/\s*(AM|PM)$/, '')}</span>
           <span className="text-sm">{currentTime.match(/(AM|PM)$/)?.[0]}</span>
         </div>
+        <p className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</p>
         <div className="flex items-center gap-1.5 mt-1">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           <span className="text-xs text-gray-400 dark:text-gray-500">فرع بريدة</span>
         </div>
-        <p className="text-xs text-gray-400 dark:text-gray-500">{currentDate}</p>
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">أهلاً، <span className="font-bold text-gray-700 dark:text-gray-200">{user?.name}</span></p>
       </div>
 
