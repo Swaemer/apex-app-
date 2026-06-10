@@ -54,7 +54,7 @@ export const Navbar = () => {
   if (location.pathname === '/auth') return null;
 
   const linkClass = (path: string) =>
-    `w-full flex items-center justify-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+    `relative w-full flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
       location.pathname === path
         ? 'bg-slate-700 text-white shadow-sm'
         : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
@@ -83,7 +83,7 @@ export const Navbar = () => {
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {navLinks.map(({ path, label, icon: Icon }) => (
           <button key={path} onClick={() => navigate(path)} className={linkClass(path)}>
-            <Icon className="w-5 h-5 shrink-0" />
+            <Icon className="w-5 h-5 shrink-0 absolute right-4" />
             {label}
           </button>
         ))}
