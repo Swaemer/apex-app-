@@ -385,6 +385,16 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const safePage = Math.min(currentPage, totalPages);
   const pagedLeads = filteredLeads.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
+  const allFilteredSelected = filteredLeads.length > 0 && filteredLeads.every((l) => selectedIds.has(l.id));
+
+  const toggleSelectAllFiltered = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredLeads.map((l) => l.id)));
+    }
+  };
+
   const getStatusBadgeColor = (status: string) => {
     const colors: Record<string, string> = {
       جديد:             'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-700',
@@ -485,6 +495,14 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             <p className="text-gray-600 dark:text-gray-400">عدد العملاء: {filteredLeads.length}</p>
           </div>
           <div className="flex gap-3">
+            {isAdmin && (
+              <button
+                onClick={toggleSelectAllFiltered}
+                className="px-6 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium flex items-center gap-2 hover:border-gray-300 dark:hover:border-gray-500 transition-all"
+              >
+                {allFilteredSelected ? 'إلغاء تحديد الكل' : `تحديد الكل (${filteredLeads.length})`}
+              </button>
+            )}
             {isAdmin && selectedIds.size > 0 && (
               <>
                 <button
