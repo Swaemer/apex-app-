@@ -375,9 +375,15 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
     return () => { supabase.removeChannel(channel); };
   }, [employeeName]);
 
+  const isUnassigned = (lead: Lead) => !lead.assigned_to || lead.assigned_to === 'لم يتم التعيين';
+
   const filteredLeads = leads.filter((lead) => {
     if (filter !== 'الكل' && lead.status !== filter) return false;
-    if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) return false;
+    if (filterUser === 'بدون مسؤول') {
+      if (!isUnassigned(lead)) return false;
+    } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
+      return false;
+    }
     return true;
   });
 
@@ -494,7 +500,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
   const allStatuses = ['الكل', ...config.statuses];
   const assignedUsers: string[] = config.distribution?.enabled
-    ? ['الكل', ...Array.from(new Set(leads.map((l) => l.assigned_to).filter((u): u is string => !!u)))]
+    ? ['الكل', 'بدون مسؤول', ...Array.from(new Set(leads.map((l) => l.assigned_to).filter((u): u is string => !!u && u !== 'لم يتم التعيين')))]
     : [];
 
   return (
