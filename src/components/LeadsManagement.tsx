@@ -471,6 +471,18 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   };
 
   const handleAssignmentChange = async (id: number, assigned_to: string) => {
+    // لو الـ lead ضمن تحديد متعدد، طبّق التعيين على كل المحدد
+    if (selectedIds.has(id) && selectedIds.size > 1) {
+      const ids = Array.from(selectedIds);
+      try {
+        await Promise.all(ids.map((i) => updateLeadAssignment(i, assigned_to)));
+        setLeads((prev) => prev.map((l) => selectedIds.has(l.id) ? { ...l, assigned_to } : l));
+        toast.success(`تم تغيير التعيين لـ ${ids.length} سجل`);
+      } catch {
+        toast.error('خطأ في تغيير التعيين');
+      }
+      return;
+    }
     try {
       await updateLeadAssignment(id, assigned_to);
       setLeads((prev) => prev.map((l) => l.id === id ? { ...l, assigned_to } : l));
