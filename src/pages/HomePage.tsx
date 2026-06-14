@@ -1,9 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
 import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdCelebration, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdEdit } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
-import { StatusDonut, RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
+import { RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
+
+const StatusDonut = lazy(() => import('../components/StatusDonut'));
+const donutFallback = <div className="w-full h-40 flex items-center justify-center text-gray-300 dark:text-gray-600 text-sm">...</div>;
 import { getLeads, getEmployees } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
@@ -296,7 +299,9 @@ export const HomePage = () => {
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6 mb-8">
                 <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">إحصائيات الـ Leads</h2>
                 <div className="flex flex-col lg:flex-row items-center gap-8">
-                  <StatusDonut data={leadStatusData} total={totalLeads} centerLabel="إجمالي" />
+                  <Suspense fallback={donutFallback}>
+                    <StatusDonut data={leadStatusData} total={totalLeads} centerLabel="إجمالي" />
+                  </Suspense>
                   <RadialProgress percentage={completionRate} label="نسبة الإنجاز" color="#22c55e" />
                 </div>
               </div>
@@ -340,7 +345,9 @@ export const HomePage = () => {
               <div className="mb-8">
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">إحصائيات المعمل</h2>
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
-                  <StatusDonut data={labStatusData} total={labCases.length} centerLabel="إجمالي" />
+                  <Suspense fallback={donutFallback}>
+                    <StatusDonut data={labStatusData} total={labCases.length} centerLabel="إجمالي" />
+                  </Suspense>
                 </div>
               </div>
 
@@ -560,7 +567,9 @@ export const HomePage = () => {
               </div>
               <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm p-6">
                 <div className="flex flex-col lg:flex-row items-center gap-8">
-                  <StatusDonut data={myStatusData} total={myTotal} centerLabel="إجمالي" />
+                  <Suspense fallback={donutFallback}>
+                    <StatusDonut data={myStatusData} total={myTotal} centerLabel="إجمالي" />
+                  </Suspense>
                   <div className="flex flex-col items-center gap-2">
                     <RadialProgress percentage={myRate} label="نسبة إنجازك" color="#22c55e" />
                     <div className="flex justify-between gap-4 text-xs text-gray-400 dark:text-gray-500">
