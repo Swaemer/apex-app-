@@ -42,6 +42,24 @@ export const getLeads = async (): Promise<Lead[]> => {
   return all;
 };
 
+const APPOINTMENT_STATUSES = ['تم حجز الموعد', 'تم ارسال تذكير الواتساب', 'حضر', 'حضر ودفع', 'لم يحضر'];
+
+export const getAppointmentLeads = async (assignedTo?: string): Promise<Lead[]> => {
+  let query = supabase
+    .from('leads')
+    .select('*')
+    .eq('is_deleted', false)
+    .not('appointment_at', 'is', null)
+    .in('status', APPOINTMENT_STATUSES)
+    .order('appointment_at', { ascending: true });
+
+  if (assignedTo) query = query.eq('assigned_to', assignedTo);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data as Lead[];
+};
+
 export const getLeadPhoneIdMap = async (): Promise<Map<string, number>> => {
   const { data, error } = await supabase
     .from('leads')

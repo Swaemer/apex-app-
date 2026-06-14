@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getLeads } from '../services/leadsService';
+import { getAppointmentLeads } from '../services/leadsService';
 import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
@@ -28,8 +28,7 @@ export const AppointmentsPage = () => {
       }
 
       setCanViewAll(viewAll);
-      const all = await getLeads();
-      setLeads(viewAll ? all : all.filter((l) => l.assigned_to === user.name));
+      setLeads(await getAppointmentLeads(viewAll ? undefined : user.name));
       setLoading(false);
     };
 
