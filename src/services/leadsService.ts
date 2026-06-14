@@ -42,6 +42,17 @@ export const getLeads = async (): Promise<Lead[]> => {
   return all;
 };
 
+export const getLeadsByAssignee = async (assigned_to: string): Promise<Lead[]> => {
+  const { data, error } = await supabase
+    .from('leads')
+    .select('*')
+    .eq('is_deleted', false)
+    .eq('assigned_to', assigned_to)
+    .order('id', { ascending: false });
+  if (error) throw error;
+  return data as Lead[];
+};
+
 const APPOINTMENT_STATUSES = ['تم حجز الموعد', 'تم ارسال تذكير الواتساب', 'حضر', 'حضر ودفع', 'لم يحضر'];
 
 export const getAppointmentLeads = async (assignedTo?: string): Promise<Lead[]> => {

@@ -7,7 +7,7 @@ import { RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
 
 const StatusDonut = lazy(() => import('../components/StatusDonut'));
 const donutFallback = <div className="w-full h-40 flex items-center justify-center text-gray-300 dark:text-gray-600 text-sm">...</div>;
-import { getLeads, getEmployees } from '../services/leadsService';
+import { getLeads, getLeadsByAssignee, getEmployees } from '../services/leadsService';
 import { getLabCases } from '../services/labService';
 import { getAllAnnouncements, createAnnouncement, deactivateAnnouncement, deleteAnnouncement, getReads } from '../services/announcementService';
 import { getMonthlyTarget, setMonthlyTarget } from '../services/targetService';
@@ -155,13 +155,14 @@ export const HomePage = () => {
     if (!user) return;
     const fetchData = async () => {
       try {
-        const [allLeads, target] = await Promise.all([getLeads(), getMonthlyTarget(currentMonthYear)]);
-        setLeads(allLeads);
+        const target = await getMonthlyTarget(currentMonthYear);
         setMonthlyTargetState(target?.target ?? 0);
         setMonthlyTargetAmountState(target?.target_amount ?? 0);
+
         if (user.isAdmin) {
           setCanViewAdmin(true);
-          const [emps, cases, anns] = await Promise.all([getEmployees(), getLabCases(), getAllAnnouncements()]);
+          const [allLeads, emps, cases, anns] = await Promise.all([getLeads(), getEmployees(), getLabCases(), getAllAnnouncements()]);
+          setLeads(allLeads);
           setEmployees(emps);
           setLabCases(cases);
           setAnnouncements(anns);
@@ -175,11 +176,12 @@ export const HomePage = () => {
 
           if (profile?.can_view_admin) {
             setCanViewAdmin(true);
-            const [emps, cases] = await Promise.all([getEmployees(), getLabCases()]);
+            const [allLeads, emps, cases] = await Promise.all([getLeads(), getEmployees(), getLabCases()]);
+            setLeads(allLeads);
             setEmployees(emps);
             setLabCases(cases);
           } else {
-            setMyLeads(allLeads.filter((l) => l.assigned_to === user.name));
+            setMyLeads(await getLeadsByAssignee(user.name));
           }
         }
       } catch { /* profiles قد لا تكون جاهزة */ }
