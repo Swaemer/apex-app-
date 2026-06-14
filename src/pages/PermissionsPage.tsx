@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
-import { MdCheck, MdPerson, MdHourglassEmpty } from 'react-icons/md';
+import { MdCheck, MdPerson, MdHourglassEmpty, MdDeleteForever } from 'react-icons/md';
 import { supabase } from '../utils/supabase/supabase';
 import { getEmployees } from '../services/leadsService';
 import type { Profile } from '../services/leadsService';
@@ -50,6 +50,7 @@ export const PermissionsPage = () => {
   const [pendingUsers, setPendingUsers] = useState<PendingUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
 
   const loadData = async () => {
     const [emps] = await Promise.all([getEmployees()]);
@@ -76,6 +77,22 @@ export const PermissionsPage = () => {
       loadData();
     } catch {
       toast.error('خطأ في التفعيل');
+    }
+  };
+
+  const removeEmployee = async (emp: Profile) => {
+    if (!window.confirm(`هل أنت متأكد من حذف "${emp.name}" نهائياً من النظام؟ لن يتمكن من تسجيل الدخول بعد ذلك ولا يمكن التراجع عن هذا الإجراء.`)) return;
+
+    setDeleting(emp.id);
+    try {
+      const { error } = await supabase.from('profiles').delete().eq('id', emp.id);
+      if (error) throw error;
+      setEmployees((prev) => prev.filter((e) => e.id !== emp.id));
+      toast.success('تم حذف الموظف');
+    } catch {
+      toast.error('خطأ في حذف الموظف');
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -159,6 +176,7 @@ export const PermissionsPage = () => {
                       <p className="text-xs font-normal text-gray-400 dark:text-gray-500 mt-0.5">{p.description}</p>
                     </th>
                   ))}
+                  <th className="px-6 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">حذف</th>
                 </tr>
               </thead>
               <tbody>
@@ -191,6 +209,16 @@ export const PermissionsPage = () => {
                         </td>
                       );
                     })}
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => removeEmployee(emp)}
+                        disabled={!!saving || !!deleting}
+                        title="حذف الموظف نهائياً"
+                        className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50"
+                      >
+                        <MdDeleteForever className={`w-5 h-5 ${deleting === emp.id ? 'animate-pulse' : ''}`} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
