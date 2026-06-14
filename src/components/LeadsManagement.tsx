@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { toast } from 'react-hot-toast';
 import { getLeads, getLeadPhoneIdMap, insertLeads, deleteLeadsByIds, updateLeadStatus, updateLeadNotes, updateLeadAssignment, updateLeadAppointment, updateLeadDoctor, deleteLead } from '../services/leadsService';
 import type { Lead, NewLead } from '../services/leadsService';
@@ -399,28 +399,33 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
   const isUnassigned = (lead: Lead) => !lead.assigned_to || lead.assigned_to === 'لم يتم التعيين';
 
-  const filteredLeads = leads
-    .filter((lead) => {
-      if (filter !== 'الكل' && lead.status !== filter) return false;
-      if (filterUser === 'بدون مسؤول') {
-        if (!isUnassigned(lead)) return false;
-      } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
-        return false;
-      }
-      return true;
-    })
-    .sort((a, b) => {
-      const aDate = parseLeadDate(a.lead_date);
-      const bDate = parseLeadDate(b.lead_date);
-      if (isNaN(aDate) && isNaN(bDate)) return b.id - a.id;
-      if (isNaN(aDate)) return 1;
-      if (isNaN(bDate)) return -1;
-      return bDate - aDate;
-    });
+  const filteredLeads = useMemo(() => {
+    return leads
+      .filter((lead) => {
+        if (filter !== 'الكل' && lead.status !== filter) return false;
+        if (filterUser === 'بدون مسؤول') {
+          if (!isUnassigned(lead)) return false;
+        } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
+          return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        const aDate = parseLeadDate(a.lead_date);
+        const bDate = parseLeadDate(b.lead_date);
+        if (isNaN(aDate) && isNaN(bDate)) return b.id - a.id;
+        if (isNaN(aDate)) return 1;
+        if (isNaN(bDate)) return -1;
+        return bDate - aDate;
+      });
+  }, [leads, filter, filterUser]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const pagedLeads = filteredLeads.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+  const pagedLeads = useMemo(
+    () => filteredLeads.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE),
+    [filteredLeads, safePage]
+  );
 
   const allFilteredSelected = filteredLeads.length > 0 && filteredLeads.every((l) => selectedIds.has(l.id));
 
@@ -530,9 +535,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   };
 
   const allStatuses = ['الكل', ...config.statuses];
-  const assignedUsers: string[] = config.distribution?.enabled
-    ? ['الكل', 'بدون مسؤول', ...Array.from(new Set(leads.map((l) => l.assigned_to).filter((u): u is string => !!u && u !== 'لم يتم التعيين')))]
-    : [];
+  const assignedUsers: string[] = useMemo(() => {
+    if (!config.distribution?.enabled) return [];
+    return ['الكل', 'بدون مسؤول', ...Array.from(new Set(leads.map((l) => l.assigned_to).filter((u): u is string => !!u && u !== 'لم يتم التعيين')))];
+  }, [leads, config.distribution?.enabled]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8" dir="rtl">
