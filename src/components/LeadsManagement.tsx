@@ -7,7 +7,7 @@ import { supabase } from '../utils/supabase/supabase';
 interface ColumnConfig {
   columnIndex: number;
   label: string;
-  field: 'name' | 'phone' | 'status' | 'service' | 'city';
+  field: 'name' | 'phone' | 'status' | 'service' | 'city' | 'notes' | 'lead_date';
 }
 
 interface User {
@@ -153,9 +153,10 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
             service: lead.service || null,
             city: lead.city || null,
             status: lead.status || 'جديد',
-            notes: null,
+            notes: lead.notes || null,
             appointment_at: null,
             doctor: null,
+            lead_date: lead.lead_date || null,
             assigned_to: shouldDistribute ? assignUser(index, dataRows.length) : 'لم يتم التعيين',
           },
           sheetRow: index + 2,
@@ -937,8 +938,14 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
                   <p className="text-sm font-semibold text-cyan-800 dark:text-cyan-300">{selectedLead.doctor}</p>
                 </div>
               )}
+              {selectedLead.lead_date && (
+                <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">تاريخ الإضافة (من الشيت)</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">{selectedLead.lead_date}</p>
+                </div>
+              )}
               <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3">
-                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">تاريخ الإضافة</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mb-1">تاريخ الإضافة (النظام)</p>
                 <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                   {new Date(selectedLead.created_at).toLocaleDateString('ar-SA', {
                     year: 'numeric', month: 'short', day: 'numeric',

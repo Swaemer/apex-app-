@@ -10,6 +10,8 @@ const BASE_CONFIG = {
     { columnIndex: 1, label: 'الهاتف', field: 'phone' as const },
     { columnIndex: 2, label: 'الخدمة المطلوبة', field: 'service' as const },
     { columnIndex: 3, label: 'المدينة', field: 'city' as const },
+    { columnIndex: 4, label: 'الملاحظات', field: 'notes' as const },
+    { columnIndex: 7, label: 'تاريخ الإضافة', field: 'lead_date' as const },
   ],
   statuses: ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'],
   idColumnIndex: 5, // عمود F في الشيت (0-based)

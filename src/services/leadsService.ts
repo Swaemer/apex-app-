@@ -11,6 +11,7 @@ export interface Lead {
   notes: string | null;
   appointment_at: string | null;
   doctor: string | null;
+  lead_date: string | null;
   created_at: string;
   updated_at: string;
   is_deleted?: boolean;
