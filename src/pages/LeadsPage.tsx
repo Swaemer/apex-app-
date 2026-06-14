@@ -14,7 +14,7 @@ const BASE_CONFIG = {
     { columnIndex: 7, label: 'تاريخ الإضافة', field: 'lead_date' as const },
   ],
   statuses: ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'],
-  idColumnIndex: 5, // عمود F في الشيت (0-based)
+  idColumnIndex: 8, // عمود I في الشيت (0-based)
 };
 
 export const LeadsPage = () => {
