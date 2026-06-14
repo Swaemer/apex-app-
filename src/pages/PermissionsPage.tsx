@@ -85,12 +85,13 @@ export const PermissionsPage = () => {
 
     setDeleting(emp.id);
     try {
-      const { error } = await supabase.from('profiles').delete().eq('id', emp.id);
+      const { data, error } = await supabase.from('profiles').delete().eq('id', emp.id).select();
       if (error) throw error;
+      if (!data || data.length === 0) throw new Error('blocked by RLS');
       setEmployees((prev) => prev.filter((e) => e.id !== emp.id));
       toast.success('تم حذف الموظف');
     } catch {
-      toast.error('خطأ في حذف الموظف');
+      toast.error('خطأ في حذف الموظف — تحقق من صلاحيات الحذف (RLS) في قاعدة البيانات');
     } finally {
       setDeleting(null);
     }
