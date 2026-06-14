@@ -1,10 +1,13 @@
 import { supabase } from '../utils/supabase/supabase';
 
+export type AnnouncementType = 'alert' | 'celebration';
+
 export interface Announcement {
   id: number;
   message: string;
   target_employees: string[];
   is_active: boolean;
+  type: AnnouncementType;
   created_at: string;
 }
 
@@ -27,10 +30,14 @@ export const getAllAnnouncements = async (): Promise<Announcement[]> => {
   return data as Announcement[];
 };
 
-export const createAnnouncement = async (message: string, target_employees: string[]): Promise<void> => {
+export const createAnnouncement = async (
+  message: string,
+  target_employees: string[],
+  type: AnnouncementType = 'alert'
+): Promise<void> => {
   const { error } = await supabase
     .from('announcements')
-    .insert({ message, target_employees });
+    .insert({ message, target_employees, type });
   if (error) throw error;
 };
 
@@ -67,4 +74,13 @@ export const getReads = async (announcement_id: number): Promise<AnnouncementRea
     .order('read_at');
   if (error) throw error;
   return data as AnnouncementRead[];
+};
+
+export const getReadAnnouncementIds = async (user_name: string): Promise<number[]> => {
+  const { data, error } = await supabase
+    .from('announcement_reads')
+    .select('announcement_id')
+    .eq('user_name', user_name);
+  if (error) throw error;
+  return (data as { announcement_id: number }[]).map((r) => r.announcement_id);
 };

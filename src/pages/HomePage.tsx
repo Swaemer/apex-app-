@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiArrowLeft } from 'react-icons/fi';
-import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdEdit } from 'react-icons/md';
+import { MdLeaderboard, MdScience, MdAssignment, MdDelete, MdCheck, MdClose, MdLocalOffer, MdCampaign, MdCelebration, MdSend, MdCalendarMonth, MdAdminPanelSettings, MdMedicalServices, MdEdit } from 'react-icons/md';
 import { AppointmentsCalendar } from '../components/AppointmentsCalendar';
 import { StatusDonut, RadialProgress, StackedBar, CountUp } from '../components/StatCharts';
 import { getLeads, getEmployees } from '../services/leadsService';
@@ -12,7 +12,7 @@ import { supabase } from '../utils/supabase/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Lead, Profile } from '../services/leadsService';
 import type { LabCase } from '../services/labService';
-import type { Announcement, AnnouncementRead } from '../services/announcementService';
+import type { Announcement, AnnouncementRead, AnnouncementType } from '../services/announcementService';
 
 const STATUSES = ['جديد', 'متابعة', 'تم حجز الموعد', 'عميل بالفعل', 'لا يرغب'];
 
@@ -134,6 +134,7 @@ export const HomePage = () => {
   const [readsMap, setReadsMap] = useState<Record<number, AnnouncementRead[]>>({});
   const [expandedAnn, setExpandedAnn] = useState<number | null>(null);
   const [newMessage, setNewMessage] = useState('');
+  const [newType, setNewType] = useState<AnnouncementType>('alert');
   const [targetEmployees, setTargetEmployees] = useState<string[]>([]);
   const [canViewAdmin, setCanViewAdmin] = useState(false);
   const [loadingStats, setLoadingStats] = useState(true);
@@ -215,10 +216,11 @@ export const HomePage = () => {
   const handleSendAnnouncement = async () => {
     if (!newMessage.trim()) return;
     try {
-      await createAnnouncement(newMessage.trim(), targetEmployees);
+      await createAnnouncement(newMessage.trim(), targetEmployees, newType);
       setAnnouncements(await getAllAnnouncements());
       setNewMessage('');
       setTargetEmployees([]);
+      setNewType('alert');
     } catch { /* ignore */ }
   };
 
@@ -358,6 +360,30 @@ export const HomePage = () => {
 
             {/* نموذج الإشعار */}
             <div className="space-y-3 mb-5">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setNewType('alert')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    newType === 'alert'
+                      ? 'bg-red-50 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-300 dark:border-red-700'
+                      : 'bg-gray-50 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'
+                  }`}
+                >
+                  <MdCampaign className="w-4 h-4" /> تنبيه عام
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setNewType('celebration')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                    newType === 'celebration'
+                      ? 'bg-purple-50 text-purple-700 border-purple-300 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-700'
+                      : 'bg-gray-50 text-gray-500 border-gray-200 dark:bg-gray-700 dark:text-gray-400 dark:border-gray-600'
+                  }`}
+                >
+                  <MdCelebration className="w-4 h-4" /> تهنئة / احتفال
+                </button>
+              </div>
               <textarea
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
@@ -402,7 +428,10 @@ export const HomePage = () => {
                   <div key={a.id} className={`rounded-lg border text-sm overflow-hidden ${a.is_active ? 'border-red-200 dark:border-red-800' : 'border-gray-200 dark:border-gray-600 opacity-60'}`}>
                     <div className={`flex items-center justify-between gap-3 p-3 ${a.is_active ? 'bg-red-50 dark:bg-red-900/20' : 'bg-gray-50 dark:bg-gray-700/50'}`}>
                       <div className="flex-1 text-right">
-                        <p className={`font-medium ${a.is_active ? 'text-red-800 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>{a.message}</p>
+                        <p className={`font-medium flex items-center gap-1.5 justify-end ${a.is_active ? 'text-red-800 dark:text-red-300' : 'text-gray-600 dark:text-gray-400'}`}>
+                          {a.message}
+                          {a.type === 'celebration' && <MdCelebration className="w-4 h-4 text-purple-500 flex-shrink-0" />}
+                        </p>
                         <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                           {a.target_employees?.length ? `إلى: ${a.target_employees.join('، ')}` : 'للجميع'}
                           {' · '}{new Date(a.created_at).toLocaleDateString('ar-SA')}
