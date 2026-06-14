@@ -30,6 +30,27 @@ interface LeadsManagementConfig {
   idColumnIndex?: number; // عمود الشيت (0-based) اللي نكتب فيه Supabase ID
 }
 
+// يحاول قراءة تاريخ من الشيت بصيغ مختلفة (YYYY-MM-DD أو DD/MM/YYYY مع وقت اختياري)
+const parseLeadDate = (value: string | null): number => {
+  if (!value) return NaN;
+  const trimmed = value.trim();
+
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T ](\d{1,2}):(\d{2}))?/);
+  if (isoMatch) {
+    const [, y, m, d, h, min] = isoMatch;
+    return new Date(+y, +m - 1, +d, +(h ?? 0), +(min ?? 0)).getTime();
+  }
+
+  const dmyMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})(?:[T ](\d{1,2}):(\d{2}))?/);
+  if (dmyMatch) {
+    const [, d, m, y, h, min] = dmyMatch;
+    return new Date(+y, +m - 1, +d, +(h ?? 0), +(min ?? 0)).getTime();
+  }
+
+  const fallback = Date.parse(trimmed);
+  return isNaN(fallback) ? NaN : fallback;
+};
+
 interface LeadsManagementProps {
   config: LeadsManagementConfig;
   employeeName?: string;
@@ -378,15 +399,24 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
 
   const isUnassigned = (lead: Lead) => !lead.assigned_to || lead.assigned_to === 'لم يتم التعيين';
 
-  const filteredLeads = leads.filter((lead) => {
-    if (filter !== 'الكل' && lead.status !== filter) return false;
-    if (filterUser === 'بدون مسؤول') {
-      if (!isUnassigned(lead)) return false;
-    } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
-      return false;
-    }
-    return true;
-  });
+  const filteredLeads = leads
+    .filter((lead) => {
+      if (filter !== 'الكل' && lead.status !== filter) return false;
+      if (filterUser === 'بدون مسؤول') {
+        if (!isUnassigned(lead)) return false;
+      } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
+        return false;
+      }
+      return true;
+    })
+    .sort((a, b) => {
+      const aDate = parseLeadDate(a.lead_date);
+      const bDate = parseLeadDate(b.lead_date);
+      if (isNaN(aDate) && isNaN(bDate)) return b.id - a.id;
+      if (isNaN(aDate)) return 1;
+      if (isNaN(bDate)) return -1;
+      return bDate - aDate;
+    });
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
