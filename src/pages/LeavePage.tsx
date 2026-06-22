@@ -18,7 +18,7 @@ const statusColors: Record<string, string> = {
 
 const emptyForm = {
   patient_name: '', phone: '', birth_day: '', birth_month: '', birth_year: '', id_number: '',
-  days_count: '', doctor_name: '', same_day: false,
+  days_count: '', doctor_name: '', same_day: false, leave_from: '', leave_to: '',
 };
 
 export const LeavePage = () => {
@@ -81,6 +81,8 @@ export const LeavePage = () => {
         days_count: parseInt(form.days_count),
         doctor_name: form.doctor_name,
         same_day: form.same_day,
+        leave_from: form.leave_from || null,
+        leave_to: form.leave_to || null,
       });
       toast.success('تم إرسال الطلب');
       setForm(emptyForm);
@@ -188,6 +190,18 @@ export const LeavePage = () => {
                 </select>
               </div>
             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تاريخ بداية الإجازة</label>
+                <input type="date" value={form.leave_from} onChange={(e) => setForm((p) => ({ ...p, leave_from: e.target.value }))}
+                  className={inputClass} />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">تاريخ نهاية الإجازة</label>
+                <input type="date" value={form.leave_to} onChange={(e) => setForm((p) => ({ ...p, leave_to: e.target.value }))}
+                  className={inputClass} />
+              </div>
+            </div>
             <label className="flex items-center gap-3 cursor-pointer mt-2">
               <input
                 type="checkbox"
@@ -236,6 +250,7 @@ export const LeavePage = () => {
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">تاريخ الميلاد</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">عدد الأيام</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الطبيب</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">تاريخ الإجازة</th>
                   <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">نفس اليوم</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الحالة</th>
                   <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">التاريخ</th>
@@ -253,6 +268,11 @@ export const LeavePage = () => {
                     </td>
                     <td className="px-5 py-4 text-sm text-center font-bold text-gray-900 dark:text-white">{r.days_count}</td>
                     <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{r.doctor_name}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {r.leave_from && r.leave_to
+                        ? `${r.leave_from} → ${r.leave_to}`
+                        : r.leave_from || '—'}
+                    </td>
                     <td className="px-5 py-4 text-center">
                       {r.same_day ? (
                         <span className="inline-flex items-center justify-center w-6 h-6 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm font-bold">✓</span>
@@ -285,7 +305,7 @@ export const LeavePage = () => {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={isAdmin ? 10 : 9} className="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
+                    <td colSpan={isAdmin ? 11 : 10} className="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
                       {loading ? 'جاري التحميل...' : 'لا توجد طلبات'}
                     </td>
                   </tr>

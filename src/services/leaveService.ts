@@ -9,6 +9,8 @@ export interface LeaveRequest {
   days_count: number;
   doctor_name: string;
   same_day: boolean;
+  leave_from: string | null;
+  leave_to: string | null;
   status: string;
   created_at: string;
 }
