@@ -144,6 +144,7 @@ export const HomePage = () => {
   const [showAnnouncementsModal, setShowAnnouncementsModal] = useState(false);
   const [monthlyTarget, setMonthlyTargetState] = useState(0);
   const [monthlyTargetAmount, setMonthlyTargetAmountState] = useState(0);
+  const [monthlyBookingsCount, setMonthlyBookingsCount] = useState(0);
   const [editingTarget, setEditingTarget] = useState(false);
   const [targetInput, setTargetInput] = useState('');
   const [targetAmountInput, setTargetAmountInput] = useState('');
@@ -182,6 +183,16 @@ export const HomePage = () => {
             setLabCases(cases);
           } else {
             setMyLeads(await getLeadsByAssignee(user.name));
+            const [y, m] = currentMonthYear.split('-').map(Number);
+            const nextMonth = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
+            const { count } = await supabase
+              .from('leads')
+              .select('*', { count: 'exact', head: true })
+              .eq('is_deleted', false)
+              .eq('status', 'تم حجز الموعد')
+              .gte('created_at', `${currentMonthYear}-01`)
+              .lt('created_at', `${nextMonth}-01`);
+            setMonthlyBookingsCount(count ?? 0);
           }
         }
       } catch { /* profiles قد لا تكون جاهزة */ }
@@ -264,7 +275,9 @@ export const HomePage = () => {
   const labStatusData = labStatuses.map((s) => ({ name: s, value: labCases.filter((c) => c.status === s).length, color: labStatusHexColors[s] }));
 
   // تارقت الشهر
-  const monthlyLeadsCount = leads.filter((l) => l.status === 'تم حجز الموعد' && l.created_at?.slice(0, 7) === currentMonthYear).length;
+  const monthlyLeadsCount = isAdmin || canViewAdmin
+    ? leads.filter((l) => l.status === 'تم حجز الموعد' && l.created_at?.slice(0, 7) === currentMonthYear).length
+    : monthlyBookingsCount;
   const targetPercentage = monthlyTarget > 0 ? Math.round((monthlyLeadsCount / monthlyTarget) * 100) : 0;
 
   // إحصائيات الموظف
