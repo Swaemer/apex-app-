@@ -36,6 +36,8 @@ export const LabPage = () => {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+  const [colPage, setColPage] = useState<Record<string, number>>({});
+  const COL_PAGE_SIZE = 5;
 
   const load = async () => {
     try { setCases(await getLabCases()); }
@@ -337,6 +339,10 @@ export const LabPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {STATUSES.map((status) => {
             const colCases = filtered.filter((c) => c.status === status);
+            const page = colPage[status] ?? 1;
+            const totalColPages = Math.max(1, Math.ceil(colCases.length / COL_PAGE_SIZE));
+            const safePage = Math.min(page, totalColPages);
+            const pagedCases = colCases.slice((safePage - 1) * COL_PAGE_SIZE, safePage * COL_PAGE_SIZE);
             const colStyle = {
               'في المعمل':   { header: 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800', title: 'text-yellow-800 dark:text-yellow-300', count: 'bg-yellow-200 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200', col: 'border-yellow-200 dark:border-yellow-800 bg-yellow-50/40 dark:bg-yellow-900/10' },
               'تم الاستلام': { header: 'bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800',  title: 'text-green-800 dark:text-green-300',  count: 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200',  col: 'border-green-200 dark:border-green-800 bg-green-50/40 dark:bg-green-900/10'  },
@@ -367,7 +373,7 @@ export const LabPage = () => {
                 <div className="flex-1 p-3 space-y-3 min-h-[160px]">
                   {colCases.length === 0 ? (
                     <p className="text-center text-gray-400 dark:text-gray-500 text-xs pt-8">لا توجد حالات</p>
-                  ) : colCases.map((c) => (
+                  ) : pagedCases.map((c) => (
                     <div
                       key={c.id}
                       draggable={!!(isAdmin || canEdit) && editingId !== c.id}
@@ -492,6 +498,27 @@ export const LabPage = () => {
                       )}
                     </div>
                   ))}
+
+                  {/* ترقيم الصفحات */}
+                  {totalColPages > 1 && (
+                    <div className="flex items-center justify-center gap-2 pt-2">
+                      <button
+                        onClick={() => setColPage((p) => ({ ...p, [status]: Math.max(1, safePage - 1) }))}
+                        disabled={safePage === 1}
+                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 transition-all"
+                      >
+                        السابق
+                      </button>
+                      <span className="text-xs text-gray-400 dark:text-gray-500">{safePage} / {totalColPages}</span>
+                      <button
+                        onClick={() => setColPage((p) => ({ ...p, [status]: Math.min(totalColPages, safePage + 1) }))}
+                        disabled={safePage === totalColPages}
+                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 transition-all"
+                      >
+                        التالي
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
