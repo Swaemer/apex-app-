@@ -34,10 +34,9 @@ export const LabPage = () => {
   const [pending, setPending] = useState<Record<number, Partial<LabCase>>>({});
   const [saving, setSaving] = useState<Record<number, boolean>>({});
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [draggingId, setDraggingId] = useState<number | null>(null);
-  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
-  const [colPage, setColPage] = useState<Record<string, number>>({});
-  const COL_PAGE_SIZE = 5;
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState('الكل');
+  const PAGE_SIZE = 10;
 
   const load = async () => {
     try { setCases(await getLabCases()); }
@@ -68,13 +67,17 @@ export const LabPage = () => {
 
   const handleAdd = async () => {
     if (!newCase.patient_name.trim()) { toast.error('أدخل اسم المريض'); return; }
+    if (!newCase.file_number.trim()) { toast.error('أدخل رقم الملف'); return; }
+    if (!newCase.doctor_name) { toast.error('اختر الدكتور'); return; }
+    if (!newCase.case_type.trim()) { toast.error('أدخل نوع الحالة'); return; }
+    if (!newCase.teeth_count) { toast.error('أدخل عدد الأسنان'); return; }
     try {
       await addLabCase({
         patient_name: newCase.patient_name.trim(),
-        file_number: newCase.file_number.trim() || null,
-        doctor_name: newCase.doctor_name || null,
-        case_type: newCase.case_type.trim() || null,
-        teeth_count: newCase.teeth_count ? parseInt(newCase.teeth_count) : null,
+        file_number: newCase.file_number.trim(),
+        doctor_name: newCase.doctor_name,
+        case_type: newCase.case_type.trim(),
+        teeth_count: parseInt(newCase.teeth_count),
         lab_name: newCase.lab_name,
         ...(isAdmin && newCase.sent_date ? { sent_date: newCase.sent_date } : {}),
       });
@@ -111,25 +114,6 @@ export const LabPage = () => {
     }
   };
 
-  const handleDragDrop = async (newStatus: string, caseId: number) => {
-    const c = cases.find((x) => x.id === caseId);
-    if (!c || c.status === newStatus) return;
-
-    const today = new Date().toISOString().split('T')[0];
-    const update: Partial<LabCase> = { status: newStatus };
-    if (newStatus === 'تم الاستلام') update.received_date = today;
-    else if (newStatus === 'أعيد للمعمل') update.return_date = today;
-
-    setCases((prev) => prev.map((x) => x.id === caseId ? { ...x, ...update } : x));
-    try {
-      await updateLabCase(caseId, update);
-      toast.success('تم تغيير الحالة');
-    } catch {
-      toast.error('خطأ في تحديث الحالة');
-      load();
-    }
-  };
-
   const handleDelete = async (id: number) => {
     try {
       await deleteLabCase(id);
@@ -140,13 +124,28 @@ export const LabPage = () => {
   const filtered = cases.filter((c) => {
     if (filterDoctor !== 'الكل' && c.doctor_name !== filterDoctor) return false;
     if (filterLab !== 'الكل' && c.lab_name !== filterLab) return false;
+    if (filterStatus !== 'الكل' && c.status !== filterStatus) return false;
     return true;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedCases = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const activeDoctors = [...new Set(cases.map((c) => c.doctor_name).filter(Boolean))] as string[];
 
   const formatDate = (d: string | null) =>
     d ? new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
+
+  const getRowColor = (status: string) => {
+    const colors: Record<string, string> = {
+      'في المعمل':   'bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-900/10 dark:hover:bg-yellow-900/20',
+      'تم الاستلام': 'bg-green-50 hover:bg-green-100 dark:bg-green-900/10 dark:hover:bg-green-900/20',
+      'أعيد للمعمل': 'bg-red-50 hover:bg-red-100 dark:bg-red-900/10 dark:hover:bg-red-900/20',
+    };
+    return colors[status] || 'bg-white hover:bg-gray-50 dark:bg-gray-800 dark:hover:bg-gray-700';
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950 p-8" dir="rtl">
@@ -203,7 +202,7 @@ export const LabPage = () => {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">رقم الملف</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">رقم الملف <span className="text-red-400">*</span></label>
                     <input
                       type="text"
                       value={newCase.file_number}
@@ -213,7 +212,7 @@ export const LabPage = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">عدد الأسنان</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">عدد الأسنان <span className="text-red-400">*</span></label>
                     <input
                       type="number"
                       value={newCase.teeth_count}
@@ -225,7 +224,7 @@ export const LabPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">اسم الدكتور</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">اسم الدكتور <span className="text-red-400">*</span></label>
                   <select
                     value={newCase.doctor_name}
                     onChange={(e) => setNewCase((p) => ({ ...p, doctor_name: e.target.value }))}
@@ -237,7 +236,7 @@ export const LabPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">نوع الحالة</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">نوع الحالة <span className="text-red-400">*</span></label>
                   <input
                     type="text"
                     value={newCase.case_type}
@@ -296,17 +295,34 @@ export const LabPage = () => {
 
         {/* الفلاتر */}
         <div className="flex flex-wrap gap-6 mb-6">
+          {/* فلتر الحالة */}
+          <div>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">الحالة</p>
+            <div className="flex gap-2 flex-wrap">
+              {['الكل', ...STATUSES].map((s) => (
+                <button key={s} onClick={() => { setFilterStatus(s); setCurrentPage(1); }}
+                  className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
+                    filterStatus === s
+                      ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                  }`}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* فلتر الطبيب */}
           {activeDoctors.length > 0 && (
             <div>
               <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">الطبيب</p>
               <div className="flex gap-2 flex-wrap">
                 {['الكل', ...activeDoctors].map((d) => (
-                  <button key={d} onClick={() => setFilterDoctor(d)}
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                  <button key={d} onClick={() => { setFilterDoctor(d); setCurrentPage(1); }}
+                    className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                       filterDoctor === d
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                        : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                        ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
+                        : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                     }`}>
                     {d}
                   </button>
@@ -320,11 +336,11 @@ export const LabPage = () => {
             <p className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">المعمل</p>
             <div className="flex gap-2 flex-wrap">
               {['الكل', 'معمل سكاكا', 'معمل بريدة'].map((l) => (
-                <button key={l} onClick={() => setFilterLab(l)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all border ${
+                <button key={l} onClick={() => { setFilterLab(l); setCurrentPage(1); }}
+                  className={`px-5 py-2 rounded-xl font-medium transition-all whitespace-nowrap text-sm ${
                     filterLab === l
-                      ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
-                      : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      ? 'bg-gradient-to-r from-slate-600 to-slate-700 text-white shadow-sm'
+                      : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
                   }`}>
                   {l}
                 </button>
@@ -335,195 +351,177 @@ export const LabPage = () => {
 
         <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">إجمالي الحالات: {filtered.length}</p>
 
-        {/* Kanban */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          {STATUSES.map((status) => {
-            const colCases = filtered.filter((c) => c.status === status);
-            const page = colPage[status] ?? 1;
-            const totalColPages = Math.max(1, Math.ceil(colCases.length / COL_PAGE_SIZE));
-            const safePage = Math.min(page, totalColPages);
-            const pagedCases = colCases.slice((safePage - 1) * COL_PAGE_SIZE, safePage * COL_PAGE_SIZE);
-            const colStyle = {
-              'في المعمل':   { header: 'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-200 dark:border-yellow-800', title: 'text-yellow-800 dark:text-yellow-300', count: 'bg-yellow-200 dark:bg-yellow-800 text-yellow-700 dark:text-yellow-200', col: 'border-yellow-200 dark:border-yellow-800 bg-yellow-50/40 dark:bg-yellow-900/10' },
-              'تم الاستلام': { header: 'bg-green-100 dark:bg-green-900/30 border-green-200 dark:border-green-800',  title: 'text-green-800 dark:text-green-300',  count: 'bg-green-200 dark:bg-green-800 text-green-700 dark:text-green-200',  col: 'border-green-200 dark:border-green-800 bg-green-50/40 dark:bg-green-900/10'  },
-              'أعيد للمعمل': { header: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800',      title: 'text-red-800 dark:text-red-300',    count: 'bg-red-200 dark:bg-red-800 text-red-700 dark:text-red-200',      col: 'border-red-200 dark:border-red-800 bg-red-50/40 dark:bg-red-900/10'      },
-            }[status]!;
+        {/* الجدول */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">المريض</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">رقم الملف</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الدكتور</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">نوع الحالة</th>
+                  <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">الأسنان</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">المعمل</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الحالة</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">تاريخ الخروج</th>
+                  <th className="px-5 py-4 text-right text-sm font-semibold text-gray-700 dark:text-gray-300">الاستلام</th>
+                  {isAdmin && <th className="px-5 py-4 text-center text-sm font-semibold text-gray-700 dark:text-gray-300">حذف</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length > 0 ? pagedCases.map((c) => (
+                  <tr key={c.id} onClick={() => (isAdmin || canEdit) && setEditingId(c.id)}
+                    className={`border-b border-gray-100 dark:border-gray-700 transition-colors ${(isAdmin || canEdit) ? 'cursor-pointer' : ''} ${getRowColor(c.status)}`}>
+                    <td className="px-5 py-4 text-sm font-medium text-gray-900 dark:text-white">{c.patient_name}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{c.file_number ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{c.doctor_name ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm text-gray-700 dark:text-gray-300">{c.case_type ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm text-center font-bold text-gray-900 dark:text-white">{c.teeth_count ?? '—'}</td>
+                    <td className="px-5 py-4 text-sm">
+                      <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 rounded-lg border border-blue-200 dark:border-blue-700">{c.lab_name}</span>
+                    </td>
+                    <td className="px-5 py-4 text-sm">
+                      <span className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>{c.status}</span>
+                    </td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{formatDate(c.sent_date)}</td>
+                    <td className="px-5 py-4 text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">{c.received_date ? formatDate(c.received_date) : '—'}</td>
+                    {isAdmin && (
+                      <td className="px-5 py-4 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-600 transition-colors">
+                          <MdDelete className="w-4 h-4" />
+                        </button>
+                      </td>
+                    )}
+                  </tr>
+                )) : (
+                  <tr>
+                    <td colSpan={isAdmin ? 10 : 9} className="px-6 py-12 text-center text-gray-400 dark:text-gray-500">
+                      {filtered.length === 0 ? 'لا توجد حالات' : 'جاري التحميل...'}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-            return (
-              <div
-                key={status}
-                className={`rounded-2xl border overflow-hidden flex flex-col transition-all ${colStyle.col} ${dragOverStatus === status ? 'ring-2 ring-indigo-400 scale-[1.01]' : ''}`}
-                onDragOver={(e) => { e.preventDefault(); setDragOverStatus(status); }}
-                onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverStatus(null); }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  const id = parseInt(e.dataTransfer.getData('text/plain'));
-                  if (id) handleDragDrop(status, id);
-                  setDraggingId(null);
-                  setDragOverStatus(null);
-                }}
-              >
-                {/* عنوان العمود */}
-                <div className={`flex items-center justify-between px-4 py-3 border-b ${colStyle.header}`}>
-                  <span className={`font-bold text-sm ${colStyle.title}`}>{status}</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${colStyle.count}`}>{colCases.length}</span>
+        {/* ترقيم الصفحات */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-center gap-3 mt-5">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={safePage === 1}
+              className="px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-all"
+            >
+              السابق
+            </button>
+            <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
+              صفحة {safePage} من {totalPages}
+              <span className="text-gray-400 dark:text-gray-500 mx-2">·</span>
+              {filtered.length} حالة
+            </span>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage === totalPages}
+              className="px-5 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 transition-all"
+            >
+              التالي
+            </button>
+          </div>
+        )}
+
+        {/* مودال التعديل */}
+        {editingId !== null && (() => {
+          const c = cases.find((x) => x.id === editingId);
+          if (!c) return null;
+          return (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => handleCancelEdit(editingId)}>
+              <div dir="rtl" className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg mx-4 overflow-y-auto max-h-[90vh]" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                  <button onClick={() => handleCancelEdit(editingId)} className="text-gray-400 hover:text-gray-600 text-xl font-bold">✕</button>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">تعديل الحالة</h2>
                 </div>
-
-                {/* البطاقات */}
-                <div className="flex-1 p-3 space-y-3 min-h-[160px]">
-                  {colCases.length === 0 ? (
-                    <p className="text-center text-gray-400 dark:text-gray-500 text-xs pt-8">لا توجد حالات</p>
-                  ) : pagedCases.map((c) => (
-                    <div
-                      key={c.id}
-                      draggable={!!(isAdmin || canEdit) && editingId !== c.id}
-                      onDragStart={(e) => { e.dataTransfer.setData('text/plain', String(c.id)); setDraggingId(c.id); }}
-                      onDragEnd={() => { setDraggingId(null); setDragOverStatus(null); }}
-                      className={`bg-white dark:bg-gray-800 rounded-xl border shadow-sm p-3 transition-all
-                        ${editingId === c.id ? 'border-indigo-300 dark:border-indigo-600 ring-1 ring-indigo-200 dark:ring-indigo-700' : 'border-gray-100 dark:border-gray-700 hover:shadow-md'}
-                        ${(isAdmin || canEdit) && editingId !== c.id ? 'cursor-grab active:cursor-grabbing' : ''}
-                        ${draggingId === c.id ? 'opacity-40 scale-95' : ''}
-                      `}
-                    >
-
-                      {editingId === c.id ? (
-                        /* وضع التعديل */
-                        <div className="space-y-2">
-                          <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
-                            placeholder="اسم المريض"
-                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200 font-medium" />
-                          <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
-                            placeholder="رقم الملف"
-                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
-                          <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
-                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200">
-                            <option value="">— الدكتور —</option>
-                            {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
-                          </select>
-                          <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
-                            placeholder="نوع الحالة"
-                            className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
-                          <div className="grid grid-cols-2 gap-2">
-                            <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
-                              className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200">
-                              <option value="معمل سكاكا">معمل سكاكا</option>
-                              <option value="معمل بريدة">معمل بريدة</option>
-                            </select>
-                            <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
-                              placeholder="عدد الأسنان"
-                              className="w-full px-2 py-1.5 border border-indigo-200 dark:border-indigo-700 rounded-lg text-xs focus:outline-none bg-white dark:bg-gray-700 dark:text-gray-200" />
-                          </div>
-                          <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
-                            className={`w-full px-2 py-1.5 rounded-lg text-xs font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
-                            {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-                          </select>
-                          <div className="grid grid-cols-2 gap-2">
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">تاريخ الخروج</p>
-                              <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
-                                className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
-                            </div>
-                            <div>
-                              <p className="text-xs text-gray-400 mb-1">تاريخ الاستلام</p>
-                              <input type="date" value={c.received_date ?? ''} onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
-                                className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
-                            </div>
-                          </div>
-                          <div>
-                            <p className="text-xs text-gray-400 mb-1">تاريخ الإعادة</p>
-                            <input type="date" value={c.return_date ?? ''} onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
-                              className="w-full px-2 py-1 border border-indigo-200 rounded-lg text-xs focus:outline-none bg-white" />
-                          </div>
-                          <div className="flex gap-2 pt-1">
-                            <button onClick={() => handleSave(c.id)} disabled={saving[c.id]}
-                              className="flex-1 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 disabled:opacity-50 transition-colors">
-                              {saving[c.id] ? '...' : 'حفظ'}
-                            </button>
-                            <button onClick={() => handleCancelEdit(c.id)}
-                              className="flex-1 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-xs font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                              إلغاء
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        /* وضع العرض */
-                        <>
-                          <div className="flex items-start justify-between mb-2">
-                            <div>
-                              <p className="font-bold text-gray-900 dark:text-white text-sm">{c.patient_name}</p>
-                              {c.file_number && <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">ملف: {c.file_number}</p>}
-                            </div>
-                            <div className="flex items-center gap-1.5 flex-shrink-0">
-                              {(isAdmin || canEdit) && (
-                                <button onClick={() => setEditingId(c.id)}
-                                  className="text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 font-medium transition-colors">
-                                  تعديل
-                                </button>
-                              )}
-                              {isAdmin && (
-                                <button onClick={() => handleDelete(c.id)} className="text-red-400 hover:text-red-600 transition-colors">
-                                  <MdDelete className="w-3.5 h-3.5" />
-                                </button>
-                              )}
-                            </div>
-                          </div>
-
-                          <div className="space-y-1">
-                            {c.doctor_name && (
-                              <p className="text-xs text-gray-600 dark:text-gray-300">
-                                <span className="text-gray-400 dark:text-gray-500">الدكتور: </span>{c.doctor_name}
-                              </p>
-                            )}
-                            {c.case_type && (
-                              <p className="text-xs text-gray-600 dark:text-gray-300">
-                                <span className="text-gray-400 dark:text-gray-500">نوع الحالة: </span>{c.case_type}
-                              </p>
-                            )}
-                            {c.teeth_count && (
-                              <p className="text-xs text-gray-600 dark:text-gray-300">
-                                <span className="text-gray-400 dark:text-gray-500">عدد الأسنان: </span>{c.teeth_count}
-                              </p>
-                            )}
-                          </div>
-
-                          <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between flex-wrap gap-1">
-                            <div className="text-xs text-gray-400 dark:text-gray-500 space-y-0.5">
-                              {c.sent_date && <p>خروج: {formatDate(c.sent_date)}</p>}
-                              {c.received_date && <p>استلام: {formatDate(c.received_date)}</p>}
-                              {c.return_date && <p>إعادة: {formatDate(c.return_date)}</p>}
-                            </div>
-                            <span className="text-xs font-semibold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-lg">{c.lab_name}</span>
-                          </div>
-                        </>
-                      )}
+                <div className="px-6 py-5 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">اسم المريض</label>
+                    <input type="text" value={c.patient_name} onChange={(e) => handleChange(c.id, 'patient_name', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">رقم الملف</label>
+                      <input type="text" value={c.file_number ?? ''} onChange={(e) => handleChange(c.id, 'file_number', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
                     </div>
-                  ))}
-
-                  {/* ترقيم الصفحات */}
-                  {totalColPages > 1 && (
-                    <div className="flex items-center justify-center gap-2 pt-2">
-                      <button
-                        onClick={() => setColPage((p) => ({ ...p, [status]: Math.max(1, safePage - 1) }))}
-                        disabled={safePage === 1}
-                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 transition-all"
-                      >
-                        السابق
-                      </button>
-                      <span className="text-xs text-gray-400 dark:text-gray-500">{safePage} / {totalColPages}</span>
-                      <button
-                        onClick={() => setColPage((p) => ({ ...p, [status]: Math.min(totalColPages, safePage + 1) }))}
-                        disabled={safePage === totalColPages}
-                        className="px-2.5 py-1 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-40 transition-all"
-                      >
-                        التالي
-                      </button>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">عدد الأسنان</label>
+                      <input type="number" value={c.teeth_count ?? ''} onChange={(e) => handleChange(c.id, 'teeth_count', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
                     </div>
-                  )}
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">الدكتور</label>
+                    <select value={c.doctor_name ?? ''} onChange={(e) => handleChange(c.id, 'doctor_name', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors">
+                      <option value="">— اختر الدكتور —</option>
+                      {doctors.map((d) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">نوع الحالة</label>
+                    <input type="text" value={c.case_type ?? ''} onChange={(e) => handleChange(c.id, 'case_type', e.target.value)}
+                      className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">المعمل</label>
+                      <select value={c.lab_name} onChange={(e) => handleChange(c.id, 'lab_name', e.target.value)}
+                        className="w-full px-4 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors">
+                        <option value="معمل سكاكا">معمل سكاكا</option>
+                        <option value="معمل بريدة">معمل بريدة</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">الحالة</label>
+                      <select value={c.status} onChange={(e) => handleChange(c.id, 'status', e.target.value)}
+                        className={`w-full px-4 py-2.5 rounded-xl text-sm font-semibold border cursor-pointer ${statusColors[c.status] ?? 'bg-gray-50 text-gray-700 border-gray-200'}`}>
+                        {STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">تاريخ الخروج</label>
+                      <input type="date" value={c.sent_date ? c.sent_date.split('T')[0] : ''} onChange={(e) => handleChange(c.id, 'sent_date', e.target.value)}
+                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">تاريخ الاستلام</label>
+                      <input type="date" value={c.received_date ?? ''} onChange={(e) => handleChange(c.id, 'received_date', e.target.value)}
+                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1.5">تاريخ الإعادة</label>
+                      <input type="date" value={c.return_date ?? ''} onChange={(e) => handleChange(c.id, 'return_date', e.target.value)}
+                        className="w-full px-3 py-2.5 border border-gray-200 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:border-gray-300 transition-colors" />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex gap-3 px-6 pb-6">
+                  <button onClick={() => handleSave(c.id)} disabled={saving[c.id]}
+                    className="flex-1 py-2.5 bg-slate-700 text-white rounded-xl text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition-colors">
+                    {saving[c.id] ? 'جاري الحفظ...' : 'حفظ التغييرات'}
+                  </button>
+                  <button onClick={() => handleCancelEdit(editingId)}
+                    className="flex-1 py-2.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-sm font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                    إلغاء
+                  </button>
                 </div>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })()}
 
       </div>
     </div>
