@@ -73,6 +73,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const [selectedDistEmployees, setSelectedDistEmployees] = useState<string[]>([]);
   const [distributingSelected, setDistributingSelected] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [modalStatus, setModalStatus] = useState('');
   const [modalNotes, setModalNotes] = useState('');
@@ -400,6 +401,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
   const isUnassigned = (lead: Lead) => !lead.assigned_to || lead.assigned_to === 'لم يتم التعيين';
 
   const filteredLeads = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
     return leads
       .filter((lead) => {
         if (filter !== 'الكل' && lead.status !== filter) return false;
@@ -407,6 +409,13 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
           if (!isUnassigned(lead)) return false;
         } else if (filterUser !== 'الكل' && lead.assigned_to !== filterUser) {
           return false;
+        }
+        if (q) {
+          const haystack = [lead.name, lead.phone, lead.service, lead.city, lead.notes]
+            .filter(Boolean)
+            .join(' ')
+            .toLowerCase();
+          if (!haystack.includes(q)) return false;
         }
         return true;
       })
@@ -418,7 +427,7 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
         if (isNaN(bDate)) return -1;
         return bDate - aDate;
       });
-  }, [leads, filter, filterUser]);
+  }, [leads, filter, filterUser, searchQuery]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -682,6 +691,32 @@ export const LeadsManagement = ({ config, employeeName, isAdmin = false, employe
               >
                 إلغاء
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* Search */}
+        {isAdmin && (
+          <div className="mb-6">
+            <div className="relative">
+              <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+                placeholder="ابحث بالاسم، الجوال، الخدمة، المدينة، أو الملاحظات..."
+                className="w-full pr-12 pl-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-700 focus:border-transparent transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(''); setCurrentPage(1); }}
+                  className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 text-lg font-bold"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
         )}
